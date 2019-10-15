@@ -8,23 +8,23 @@ The Great Libowski is a chat bot that allows you to interact with the [Washingto
 ```
 git clone git@github.com:emb417/libowski.git
 ```
-1. Install specific nodejs version
+2. Install specific nodejs version
 ```
 nvm install 12.12.0
 ```
-1. Install yarn globally
+3. Install yarn globally
 ```
 npm i -g yarn
 ```
-1. Install app
+4. Install app
 ```
 yarn
 ```
-1. Start app
+5. Start app
 ```
 yarn start
 ```
-1. Test app
+6. Test app
 ```
 curl http://127.0.0.1:1337/find/wargames to test
 ```
