@@ -1,0 +1,19 @@
+{
+  "name": "libowski",
+  "version": "1.0.0",
+  "description": "Library Chat Bot",
+  "author": "Eric B.",
+  "license": "ISC",
+  "main": "app/server.js",
+  "scripts": {
+    "start": "nodemon --watch app app/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "axios": "^0.19.0",
+    "express": "^4.17.1",
+    "log4js": "^5.2.2",
+    "nodemon": "^1.19.3"
+  },
+  "devDependencies": {}
+}
