@@ -12,17 +12,13 @@ git clone git@github.com:emb417/libowski.git
 ```
 nvm install 12.12.0
 ```
-3. Install yarn globally
+3. Install app
 ```
-npm i -g yarn
-```
-4. Install app
-```
-yarn
+npm i
 ```
 5. Start app
 ```
-yarn start
+npm start
 ```
 6. Test app
 ```
