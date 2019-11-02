@@ -12,19 +12,15 @@ git clone git@github.com:emb417/libowski.git
 ```
 nvm install 12.12.0
 ```
-3. Install yarn globally
+3. Install app
 ```
-npm i -g yarn
+npm i
 ```
-4. Install app
+4. Start app
 ```
-yarn
+npm start
 ```
-5. Start app
-```
-yarn start
-```
-6. Test app
+5. Test app
 ```
 curl http://127.0.0.1:1337/find/wargames to test
 ```
@@ -33,29 +29,9 @@ curl http://127.0.0.1:1337/find/wargames to test
   * listens on port 1337
   * uses nodemon to reload with changes in app dir 
 
-
-
-## Automation Setup
-Automation files are included for Mac OS X.
-* com.wccls.News.plist (global LaunchAgent) curls the server at /news every 15 from 9-8 (open hours)
-* CurlOnDemand.applescript will listen for incoming messages and curl the message text as the path to the local server (read: chat bot)
-
-To setup plists, try LaunchControl for nice GUI experience, or show your 1337 skillz with cp and launchctl:
-* sudo cp com.wccls.News.plist /Library/LaunchAgents/.
-* launchctl load /Library/LaunchAgents/com.wccls.News.plist
-
-Included is a shell script that interacts with messages on a mac:
-* imessage.sh is called by an index.js child_process
-  * NOTE: make sure this script is executable (hint: chmod)
-
 # Global modules
 * server handles logging and routing
-
-# App Modules
-The app dir is divided into modules, each including:
-* a route in server.js
-* a named dir, e.g. news
-* an index.js containing the express app
+* fetch handles external api requests
 
 # Example API Usage
 
