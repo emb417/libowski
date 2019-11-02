@@ -15,5 +15,9 @@
     "log4js": "^5.2.2",
     "nodemon": "^1.19.3"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "eslint": "^6.6.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.18.2"
+  }
 }
