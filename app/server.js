@@ -7,7 +7,13 @@ const { search, availabilityDetails } = require('./fetch');
 log4js.configure({
   appenders: {
     console: { type: 'console' },
-    file: { type: 'file', filename: 'logs/server.log' }
+    file: {
+      type: 'file',
+      filename: 'logs/server.log',
+      maxLogSize: 10485760,
+      backups: 2,
+      compress: true
+    }
   },
   categories: {
     default: { appenders: ['file','console'], level: 'info' }
