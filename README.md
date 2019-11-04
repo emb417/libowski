@@ -1,6 +1,6 @@
 # libowski
 
-The Great Libowski is a chat bot that allows you to interact with the [Washington County Cooperative Library](https://wccls.bibliocommons.com/) to find items based on keyword searches and to show which branches have the available items.
+The Great Libowski is an aspiring chat bot that allows you to interact with the [Washington County Cooperative Library](https://wccls.bibliocommons.com/) to find items based on keyword searches and to show which branches have the available items.
 
 ## Start Server
 
