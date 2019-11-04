@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const log4js = require('log4js');
-const { search, availabilityDetails } = require('./fetch');
+const { search, notHoldableAvailability } = require('./fetch');
 
 log4js.configure({
   appenders: {
@@ -46,7 +46,7 @@ app.get( '/now/:itemId', async ( req, res ) => {
   logger.info( `getting availability for itemId ${ req.params.itemId }...` );
 
   try {
-    const results = await availabilityDetails( req.params.itemId );
+    const results = await notHoldableAvailability( req.params.itemId );
     res.send( results );
   } catch ( err ) { res.send( err ); }
 

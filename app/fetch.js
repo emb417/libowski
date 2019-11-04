@@ -41,6 +41,39 @@ const availabilityDetails = async ( itemId ) => {
   } catch ( err ) { logger.error(err); return; }
 };
 
+const notHoldableAvailability = async ( itemId ) => {
+
+  logger.debug(`not holdable availability for itemId ${ itemId }...`);
+
+  try {
+    const { data } = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/availability/${ itemId }` );
+
+    logger.trace( `availability response...\n${ JSON.stringify( data, null, 2 ) }` );
+
+    const entity = data.entities.bibs[itemId];
+
+    let formattedData = "";
+    formattedData += `${ entity.briefInfo.title }${ entity.briefInfo.subtitle ? ` - ${ entity.briefInfo.subtitle }` : '' } (${ entity.briefInfo.format }) (Not Holdable)\n`;
+
+    data.items.forEach(
+      item => {
+        if ( item.status === "AVAILABLE_ITEMS" ){
+          item.items.forEach(
+            item => {
+              
+              logger.trace( `item...\n${ JSON.stringify( item, null, 2 ) }` );
+              
+              formattedData += item.collection.includes('Not Holdable') ? ` - ${ item.branchName }\n` : ``;
+            }
+          );
+        }
+      }
+    );
+
+    return formattedData;    
+  } catch ( err ) { logger.error(err); return; }
+};
+
 const search = async ( keywords ) => {
 
   logger.debug(`search results for keywords ${ keywords }...`);
@@ -68,4 +101,4 @@ const search = async ( keywords ) => {
     } catch ( err ) { return err; }
   };
 
-  module.exports = { search, availabilityDetails };
+  module.exports = { search, availabilityDetails, notHoldableAvailability };
