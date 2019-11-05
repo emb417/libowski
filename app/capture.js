@@ -16,6 +16,17 @@ const event = async ( itemId ) => {
     logger.trace( 'availability response...\n' ); // ${JSON.stringify( data, null, 2 )}
 
     const entity = data.entities.bibs[itemId];
+    const branchNames = [];
+    data.items.forEach( ( item ) => {
+      if ( item.status === 'AVAILABLE_ITEMS' ) {
+        item.items.forEach( ( unit ) => {
+          logger.trace( 'unit...\n' ); // ${JSON.stringify( unit, null, 2 )}
+          if ( unit.collection.includes( 'Not Holdable' ) ) {
+            branchNames.push( unit.branchName );
+          }
+        } );
+      }
+    } );
 
     db.insert( {
       timestamp: Date.now(),
@@ -25,6 +36,7 @@ const event = async ( itemId ) => {
       format: entity.briefInfo.format,
       description: entity.briefInfo.description,
       publicationDate: entity.briefInfo.publicationDate,
+      branchNames,
     }, ( err, docs ) => {
       if ( err ) { logger.error( err ); return err; }
       logger.trace( `entity inserted...\n\n${JSON.stringify( docs )}\n` );

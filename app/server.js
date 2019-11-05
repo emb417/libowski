@@ -20,7 +20,7 @@ log4js.configure( {
     },
   },
   categories: {
-    default: { appenders: ['file', 'console'], level: 'trace' },
+    default: { appenders: ['file', 'console'], level: 'info' },
   },
 } );
 const logger = log4js.getLogger( 'Libowski' );
@@ -68,13 +68,14 @@ app.get( '/avail/:itemId', asyncHandler( async ( req, res ) => {
     title: 1,
     format: 1,
     publicationDate: 1,
+    branchNames: 1,
     _id: 0,
   } ).sort( {
     timestamp: -1,
   } ).limit( 2 ).exec( ( err, docs ) => {
     if ( err ) { logger.error( err ); return err; }
     logger.debug( 'found docs...' );
-    res.send( docs );
+    res.send( JSON.stringify( docs, null, 2 ) );
     return res;
   } );
 } ) );
