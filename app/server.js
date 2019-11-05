@@ -75,7 +75,7 @@ app.get( '/avail/:itemId', asyncHandler( async ( req, res ) => {
   } ).limit( 2 ).exec( ( err, docs ) => {
     if ( err ) { logger.error( err ); return err; }
     logger.debug( 'found docs...' );
-    res.send( JSON.stringify( docs, null, 2 ) );
+    res.send( `...find avail for ${req.params.itemId}\n${JSON.stringify( docs, null, 2 )}\n` );
     return res;
   } );
 } ) );

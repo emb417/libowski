@@ -42,7 +42,7 @@ const event = async ( itemId ) => {
       logger.trace( `entity inserted...\n\n${JSON.stringify( docs )}\n` );
       return { docs };
     } );
-    return `...inserted ${entity.briefInfo.title}`;
+    return `...inserted ${entity.briefInfo.title}\n\n`;
   } catch ( err ) { logger.error( err ); return err; }
 };
 
