@@ -1,9 +1,13 @@
 const fs = require( 'fs' );
 const path = require( 'path' );
+const asyncHandler = require( 'express-async-handler' );
 const express = require( 'express' );
 const log4js = require( 'log4js' );
+const Datastore = require( 'nedb' );
 const { search, notHoldableAvailability } = require( './fetch' );
+const capture = require( './capture' );
 
+// setup logger files and config
 log4js.configure( {
   appenders: {
     console: { type: 'console' },
@@ -24,6 +28,12 @@ const logDirectory = path.join( __dirname, '..', 'logs' );
 // eslint-disable-next-line no-unused-expressions
 fs.existsSync( logDirectory ) || fs.mkdirSync( logDirectory );
 
+// setup datastore files and config
+const dataDirectory = path.join( __dirname, '..', 'data' );
+// eslint-disable-next-line no-unused-expressions
+fs.existsSync( dataDirectory ) || fs.mkdirSync( dataDirectory );
+const db = new Datastore( { filename: path.join( dataDirectory, 'libowski.db' ) } );
+
 // instantiate express app
 const app = express();
 
@@ -31,23 +41,43 @@ const app = express();
 app.use( log4js.connectLogger( logger ) );
 
 // express routes
-app.get( '/find/:keywords', async ( req, res ) => {
+app.get( '/find/:keywords', asyncHandler( async ( req, res ) => {
   logger.info( `searching for keywords ${req.params.keywords}...` );
+  const results = await search( req.params.keywords );
+  res.send( results );
+} ) );
 
-  try {
-    const results = await search( req.params.keywords );
-    res.send( results );
-  } catch ( err ) { res.send( err ); }
-} );
-
-app.get( '/now/:itemId', async ( req, res ) => {
+app.get( '/now/:itemId', asyncHandler( async ( req, res ) => {
   logger.info( `getting availability for itemId ${req.params.itemId}...` );
+  const results = await notHoldableAvailability( req.params.itemId );
+  res.send( results );
+} ) );
 
-  try {
-    const results = await notHoldableAvailability( req.params.itemId );
-    res.send( results );
-  } catch ( err ) { res.send( err ); }
-} );
+app.get( '/insert/:itemId', asyncHandler( async ( req, res ) => {
+  logger.info( `adding alert for itemId ${req.params.itemId}...` );
+  const results = await capture( req.params.itemId );
+  res.send( results );
+} ) );
+
+app.get( '/avail/:itemId', asyncHandler( async ( req, res ) => {
+  logger.info( 'getting alerts...' );
+  db.loadDatabase();
+  db.find( { id: req.params.itemId }, {
+    timestamp: 1,
+    id: 1,
+    title: 1,
+    format: 1,
+    publicationDate: 1,
+    _id: 0,
+  } ).sort( {
+    timestamp: -1,
+  } ).limit( 2 ).exec( ( err, docs ) => {
+    if ( err ) { logger.error( err ); return err; }
+    logger.debug( 'found docs...' );
+    res.send( docs );
+    return res;
+  } );
+} ) );
 
 app.get( '*', ( req, res ) => { res.send( 'The Dude does not abide!' ); } );
 
