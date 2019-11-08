@@ -3,9 +3,9 @@ const path = require( 'path' );
 const asyncHandler = require( 'express-async-handler' );
 const express = require( 'express' );
 const log4js = require( 'log4js' );
-const Datastore = require( 'nedb' );
 const { search, notHoldableAvailability } = require( './fetch' );
 const capture = require( './capture' );
+const query = require( './query' );
 
 // setup logger files and config
 log4js.configure( {
@@ -20,7 +20,7 @@ log4js.configure( {
     },
   },
   categories: {
-    default: { appenders: ['file', 'console'], level: 'info' },
+    default: { appenders: ['file', 'console'], level: 'debug' },
   },
 } );
 const logger = log4js.getLogger( 'Libowski' );
@@ -32,7 +32,6 @@ fs.existsSync( logDirectory ) || fs.mkdirSync( logDirectory );
 const dataDirectory = path.join( __dirname, '..', 'data' );
 // eslint-disable-next-line no-unused-expressions
 fs.existsSync( dataDirectory ) || fs.mkdirSync( dataDirectory );
-const db = new Datastore( { filename: path.join( dataDirectory, 'libowski.db' ) } );
 
 // instantiate express app
 const app = express();
@@ -48,36 +47,21 @@ app.get( '/find/:keywords', asyncHandler( async ( req, res ) => {
 } ) );
 
 app.get( '/now/:itemId', asyncHandler( async ( req, res ) => {
-  logger.info( `getting availability for itemId ${req.params.itemId}...` );
+  logger.info( `fetching availability for itemId ${req.params.itemId}...` );
   const results = await notHoldableAvailability( req.params.itemId );
   res.send( results );
 } ) );
 
 app.get( '/insert/:itemId', asyncHandler( async ( req, res ) => {
-  logger.info( `adding alert for itemId ${req.params.itemId}...` );
-  const results = await capture( req.params.itemId );
+  logger.info( `inserting avail for itemId ${req.params.itemId}...` );
+  const results = await capture.avail( req.params.itemId );
   res.send( results );
 } ) );
 
 app.get( '/avail/:itemId', asyncHandler( async ( req, res ) => {
-  logger.info( 'getting alerts...' );
-  db.loadDatabase();
-  db.find( { id: req.params.itemId }, {
-    timestamp: 1,
-    id: 1,
-    title: 1,
-    format: 1,
-    publicationDate: 1,
-    branchNames: 1,
-    _id: 0,
-  } ).sort( {
-    timestamp: -1,
-  } ).limit( 2 ).exec( ( err, docs ) => {
-    if ( err ) { logger.error( err ); return err; }
-    logger.debug( 'found docs...' );
-    res.send( `...find avail for ${req.params.itemId}\n${JSON.stringify( docs, null, 2 )}\n` );
-    return res;
-  } );
+  logger.info( 'querying avail...' );
+  const results = await query.avail( req.params.itemId );
+  res.send( `...find avail for ${req.params.itemId}\n${JSON.stringify( results, null, 2 )}\n` );
 } ) );
 
 app.get( '*', ( req, res ) => { res.send( 'The Dude does not abide!' ); } );

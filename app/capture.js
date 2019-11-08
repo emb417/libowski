@@ -2,12 +2,12 @@ const axios = require( 'axios' );
 const log4js = require( 'log4js' );
 const path = require( 'path' );
 
-const logger = log4js.getLogger( 'events' );
+const logger = log4js.getLogger( 'capture' );
 const Datastore = require( 'nedb' );
 
 const db = new Datastore( { filename: path.join( __dirname, '..', 'data', 'libowski.db' ), autoload: true } );
 
-const event = async ( itemId ) => {
+const avail = async ( itemId ) => {
   logger.debug( `not holdable availability for itemId ${itemId}...` );
 
   try {
@@ -46,4 +46,4 @@ const event = async ( itemId ) => {
   } catch ( err ) { logger.error( err ); return err; }
 };
 
-module.exports = event;
+module.exports = { avail };

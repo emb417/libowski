@@ -7,7 +7,8 @@
   "main": "app/server.js",
   "scripts": {
     "start": "nodemon --watch app app/server.js",
-    "test": "curl localhost:1337/find/wargames && curl localhost:1337/now/S143C2099277 && curl localhost:1337/insert/S143C2099277 && curl localhost:1337/avail/S143C2099277"
+    "test": "curl localhost:1337/find/wargames && curl localhost:1337/now/S143C2099277 && curl localhost:1337/insert/S143C2099277 && curl localhost:1337/avail/S143C2099277",
+    "test-alert": "curl localhost:1337/find/lion+king+2019 && curl localhost:1337/now/S143C3653511 && curl localhost:1337/insert/S143C3653511 && curl localhost:1337/avail/S143C3653511"
   },
   "dependencies": {
     "axios": "^0.19.0",
