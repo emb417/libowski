@@ -45,7 +45,7 @@ const notHoldableAvailability = async ( itemId ) => {
 
     // format data starting with header
     let formattedData = '';
-    formattedData += `${entity.briefInfo.title}${entity.briefInfo.subtitle ? ` - ${entity.briefInfo.subtitle}` : ''} (${entity.briefInfo.format}) (Not Holdable)\n`;
+    formattedData += `${entity.briefInfo.title}${entity.briefInfo.subtitle ? ` - ${entity.briefInfo.subtitle}` : ''} (${entity.briefInfo.format})\n`;
 
     // add branch names where item is available
     let branchNames = '';
@@ -61,7 +61,7 @@ const notHoldableAvailability = async ( itemId ) => {
         }
       },
     );
-    const results = formattedData + ( branchNames !== '' ? `${branchNames}\n` : 'Unavailable\n\n' );
+    const results = formattedData + ( branchNames !== '' ? `${branchNames}\n` : 'Not Holdable Unavailable\n\n' );
     return results;
   } catch ( err ) { logger.error( err ); return err; }
 };
@@ -89,4 +89,4 @@ const search = async ( keywords ) => {
   } catch ( err ) { return err; }
 };
 
-module.exports = { search, availabilityDetails, notHoldableAvailability };
+module.exports = { search, notHoldableAvailability };

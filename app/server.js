@@ -3,7 +3,7 @@ const path = require( 'path' );
 const asyncHandler = require( 'express-async-handler' );
 const express = require( 'express' );
 const log4js = require( 'log4js' );
-const { search, notHoldableAvailability } = require( './fetch' );
+const fetch = require( './fetch' );
 const capture = require( './capture' );
 const query = require( './query' );
 
@@ -42,13 +42,13 @@ app.use( log4js.connectLogger( logger ) );
 // express routes
 app.get( '/find/:keywords', asyncHandler( async ( req, res ) => {
   logger.info( `searching for keywords ${req.params.keywords}...` );
-  const results = await search( req.params.keywords );
+  const results = await fetch.search( req.params.keywords );
   res.send( results );
 } ) );
 
 app.get( '/now/:itemId', asyncHandler( async ( req, res ) => {
   logger.info( `fetching availability for itemId ${req.params.itemId}...` );
-  const results = await notHoldableAvailability( req.params.itemId );
+  const results = await fetch.notHoldableAvailability( req.params.itemId );
   res.send( results );
 } ) );
 
