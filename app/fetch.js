@@ -14,21 +14,17 @@ const availabilityDetails = async ( itemId ) => {
 
   try {
     const availabilityResults = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/availability/${itemId}` );
+    logger.trace( 'availability response...\n' ); // ${JSON.stringify( items, null, 2 )}
     const { items } = availabilityResults.data;
 
-    logger.trace( 'availability response...\n' ); // ${JSON.stringify( items, null, 2 )}
-
     let formattedData = '';
-
     items.forEach(
       ( item ) => {
         if ( item.status === 'AVAILABLE_ITEMS' ) {
           item.items.forEach(
             ( unit ) => {
               logger.trace( 'unit...\n' ); // ${JSON.stringify( unit, null, 2 )}
-
-              formattedData += formattedData === '' ? '' : '\n';
-              formattedData += `${unit.branchName}${unit.collection === 'Best Sellers - Not Holdable' ? ' (Not Holdable)' : ''}`;
+              formattedData += `${unit.branchName}${unit.collection === 'Best Sellers - Not Holdable' ? ' (Not Holdable)' : ''}\n`;
             },
           );
         }
@@ -44,14 +40,14 @@ const notHoldableAvailability = async ( itemId ) => {
 
   try {
     const { data } = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/availability/${itemId}` );
-
     logger.trace( 'availability response...\n' ); // ${JSON.stringify( data, null, 2 )}
-
     const entity = data.entities.bibs[itemId];
 
+    // format data starting with header
     let formattedData = '';
-    formattedData += `${entity.briefInfo.title}${entity.briefInfo.subtitle ? ` - ${entity.briefInfo.subtitle}` : ''} (${entity.briefInfo.format}) (Not Holdable)\n`;
+    formattedData += `${entity.briefInfo.title}${entity.briefInfo.subtitle ? ` - ${entity.briefInfo.subtitle}` : ''} (${entity.briefInfo.format})\n`;
 
+    // add branch names where item is available
     let branchNames = '';
     data.items.forEach(
       ( item ) => {
@@ -59,14 +55,13 @@ const notHoldableAvailability = async ( itemId ) => {
           item.items.forEach(
             ( unit ) => {
               logger.trace( 'unit...\n' ); // ${JSON.stringify( unit, null, 2 )}
-
               branchNames += unit.collection.includes( 'Not Holdable' ) ? ` - ${unit.branchName}\n` : '';
             },
           );
         }
       },
     );
-    const results = formattedData + ( branchNames !== '' ? branchNames : 'Unavailable\n' );
+    const results = formattedData + ( branchNames !== '' ? `${branchNames}\n` : 'Not Holdable Unavailable\n\n' );
     return results;
   } catch ( err ) { logger.error( err ); return err; }
 };
@@ -76,21 +71,22 @@ const search = async ( keywords ) => {
 
   try {
     const searchResults = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/bibs/search?searchType=smart&query=${keywords}` );
+    logger.trace( 'searchResults...\n' ); // ${JSON.stringify( bibs, null, 2 )}
     const { bibs } = searchResults.data.entities;
 
-    logger.trace( 'searchResults...\n' ); // ${JSON.stringify( bibs, null, 2 )}
-
+    // format data including first five bibs
     let formattedData = '';
     await asyncForEach( Object.entries( bibs ).slice( 0, 5 ),
       async ( item ) => {
         const availability = await availabilityDetails( item[1].id );
 
-        formattedData += formattedData === '' ? '----' : '\n----';
-        formattedData += `${item[1].id}----${item[1].availability.availableCopies}/${item[1].availability.totalCopies}----${item[1].briefInfo.title}${item[1].briefInfo.subtitle ? ` - ${item[1].briefInfo.subtitle}` : ''} (${item[1].briefInfo.format})`;
-        formattedData += availability === '' ? '' : `\n${availability}`;
+        formattedData += `----${item[1].id}`;
+        formattedData += `----${item[1].availability.availableCopies}/${item[1].availability.totalCopies}`;
+        formattedData += `----${item[1].briefInfo.title}${item[1].briefInfo.subtitle ? ` - ${item[1].briefInfo.subtitle}` : ''} (${item[1].briefInfo.format})\n`;
+        formattedData += availability === '' ? '' : `${availability}\n`;
       } );
     return formattedData;
   } catch ( err ) { return err; }
 };
 
-module.exports = { search, availabilityDetails, notHoldableAvailability };
+module.exports = { search, notHoldableAvailability };

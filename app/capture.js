@@ -1,0 +1,49 @@
+const axios = require( 'axios' );
+const log4js = require( 'log4js' );
+const path = require( 'path' );
+
+const logger = log4js.getLogger( 'capture' );
+const Datastore = require( 'nedb' );
+
+const db = new Datastore( { filename: path.join( __dirname, '..', 'data', 'libowski.db' ), autoload: true } );
+
+const avail = async ( itemId ) => {
+  logger.debug( `not holdable availability for itemId ${itemId}...` );
+
+  try {
+    const { data } = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/availability/${itemId}` );
+
+    logger.trace( 'availability response...\n' ); // ${JSON.stringify( data, null, 2 )}
+
+    const entity = data.entities.bibs[itemId];
+    const branchNames = [];
+    data.items.forEach( ( item ) => {
+      if ( item.status === 'AVAILABLE_ITEMS' ) {
+        item.items.forEach( ( unit ) => {
+          logger.trace( 'unit...\n' ); // ${JSON.stringify( unit, null, 2 )}
+          if ( unit.collection.includes( 'Not Holdable' ) ) {
+            branchNames.push( unit.branchName );
+          }
+        } );
+      }
+    } );
+
+    db.insert( {
+      timestamp: Date.now(),
+      id: entity.briefInfo.id,
+      title: entity.briefInfo.title,
+      subtitle: entity.briefInfo.subtitle,
+      format: entity.briefInfo.format,
+      description: entity.briefInfo.description,
+      publicationDate: entity.briefInfo.publicationDate,
+      branchNames,
+    }, ( err, docs ) => {
+      if ( err ) { logger.error( err ); return err; }
+      logger.trace( `entity inserted...\n\n${JSON.stringify( docs )}\n` );
+      return { docs };
+    } );
+    return `...inserted ${entity.briefInfo.title}\n\n`;
+  } catch ( err ) { logger.error( err ); return err; }
+};
+
+module.exports = { avail };
