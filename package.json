@@ -7,13 +7,7 @@
   "main": "app/server.js",
   "scripts": {
     "start": "nodemon --watch app app/server.js",
-    "test": "mocha --watch ./test --reporter spec",
-    "test-wargames": "curl localhost:1337/find/wargames && curl localhost:1337/now/S143C2099277 && curl localhost:1337/insert/S143C2099277 && curl localhost:1337/avail/S143C2099277",
-    "test-find": "curl localhost:1337/find/lion+king+2019",
-    "test-now": "curl localhost:1337/now/S143C3653511",
-    "test-insert": "curl localhost:1337/insert/S143C3653511",
-    "test-alert": "curl localhost:1337/avail/S143C3653511",
-    "test-all": "curl localhost:1337/find/lion+king+2019 && curl localhost:1337/now/S143C3653511 && curl localhost:1337/insert/S143C3653511 && curl localhost:1337/avail/S143C3653511"
+    "test": "mocha --watch ./test --reporter spec"
   },
   "dependencies": {
     "axios": "^0.19.0",
