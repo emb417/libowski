@@ -7,7 +7,8 @@
   "main": "app/server.js",
   "scripts": {
     "start": "nodemon --watch app app/server.js",
-    "test": "mocha --watch ./test --reporter spec"
+    "test": "mocha --watch ./test --reporter spec",
+    "coverage": "nyc --reporter=text-summary mocha --reporter spec"
   },
   "dependencies": {
     "axios": "^0.19.0",
@@ -23,6 +24,7 @@
     "eslint": "^6.6.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",
-    "mocha": "^6.2.2"
+    "mocha": "^6.2.2",
+    "nyc": "^14.1.1"
   }
 }
