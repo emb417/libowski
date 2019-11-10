@@ -20,7 +20,7 @@ log4js.configure( {
     },
   },
   categories: {
-    default: { appenders: ['file', 'console'], level: 'debug' },
+    default: { appenders: ['file', 'console'], level: 'info' },
   },
 } );
 const logger = log4js.getLogger( 'Libowski' );
