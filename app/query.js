@@ -1,13 +1,18 @@
 const path = require( 'path' );
 const Datastore = require( 'nedb-promises' );
 const log4js = require( 'log4js' );
+const _ = require( 'lodash' );
 
 const logger = log4js.getLogger( 'query' );
 
 const availMessage = ( results ) => {
   logger.debug( 'availMessage...' );
   if ( results[0].branchNames.length !== results[1].branchNames.length ) {
-    return results[0].branchNames.length > results[1].branchNames.length ? 'In' : 'Out';
+    const title = `${results[0].title}${results[0].subtitle
+      ? ` - ${results[0].subtitle}` : ''} (${results[0].format})`;
+    return results[0].branchNames.length > results[1].branchNames.length
+      ? `${title} is @ ${_.difference( results[0].branchNames, results[1].branchNames )}`
+      : `${title} is GONE @ ${_.difference( results[1].branchNames, results[0].branchNames )}`;
   }
   return 'No Alert';
 };

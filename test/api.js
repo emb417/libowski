@@ -7,9 +7,13 @@ const axios = require( 'axios' );
 describe( 'Server', function () {
   describe( 'index route', function () {
     let response;
-    this.beforeAll( async function () {
-      this.timeout( 100 );
-      response = await axios.get( 'http://localhost:1337/' );
+    this.beforeAll( function ( done ) {
+      this.timeout( 1000 );
+      setTimeout( async () => {
+        response = await axios.get( 'http://localhost:1337/' );
+        done();
+        // wait 500ms to let server restart
+      }, 500 );
     } );
     it( 'should respond', async function () {
       assert.equal( response.status, '200' );
@@ -21,14 +25,10 @@ describe( 'Server', function () {
 
   describe( 'find route', function () {
     let response;
-    this.beforeAll( function ( done ) {
+    this.beforeAll( async function () {
       this.timeout( 5000 );
-      setTimeout( async () => {
-        // wargames is a classic that should return results
-        response = await axios.get( 'http://localhost:1337/find/wargames' );
-        done();
-        // wait 500ms to let server restart
-      }, 500 );
+      // wargames is a classic that should return results
+      response = await axios.get( 'http://localhost:1337/find/wargames' );
     } );
     it( 'should respond', function () {
       assert.equal( response.status, '200' );
