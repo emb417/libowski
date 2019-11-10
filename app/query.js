@@ -4,12 +4,17 @@ const log4js = require( 'log4js' );
 
 const logger = log4js.getLogger( 'query' );
 
-const db = Datastore.create( path.join( __dirname, '..', 'data', 'libowski.db' ) );
+const availMessage = ( results ) => {
+  logger.debug( 'availMessage...' );
+  if ( results[0].branchNames.length !== results[1].branchNames.length ) {
+    return results[0].branchNames.length > results[1].branchNames.length ? 'In' : 'Out';
+  }
+  return 'No Alert';
+};
 
-// augment to compare results and return alerts on deltas
 const avail = async ( id ) => {
   logger.debug( `avail for ${id}...` );
-  db.load();
+  const db = Datastore.create( path.join( __dirname, '..', 'data', 'libowski.db' ) );
   const results = await db.find( { id }, {
     timestamp: 1,
     id: 1,
@@ -21,11 +26,10 @@ const avail = async ( id ) => {
   } ).sort( {
     timestamp: -1,
   } ).limit( 2 );
-  logger.trace( 'avail results', JSON.stringify( results, null, 2 ) );
-  if ( results[0].branchNames.length !== results[1].branchNames.length ) {
-    return results[0].branchNames.length > results[1].branchNames.length ? 'In' : 'Out';
-  }
-  return 'No Alert';
+  logger.trace( `avail results...\n${JSON.stringify( results, null, 2 )}` );
+  const response = availMessage( results );
+  logger.trace( `availMessage response...\n${response}` );
+  return response;
 };
 
-module.exports = { avail };
+module.exports = { avail, availMessage };

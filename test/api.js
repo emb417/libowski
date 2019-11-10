@@ -18,12 +18,17 @@ describe( 'Server', function () {
       assert.equal( response.data, 'The Dude does not abide!' );
     } );
   } );
+
   describe( 'find route', function () {
     let response;
-    this.beforeAll( async function () {
+    this.beforeAll( function ( done ) {
       this.timeout( 5000 );
-      // wargames is a classic that should return results
-      response = await axios.get( 'http://localhost:1337/find/wargames' );
+      setTimeout( async () => {
+        // wargames is a classic that should return results
+        response = await axios.get( 'http://localhost:1337/find/wargames' );
+        done();
+        // wait 500ms to let server restart
+      }, 500 );
     } );
     it( 'should respond', function () {
       assert.equal( response.status, '200' );
@@ -65,7 +70,6 @@ describe( 'Server', function () {
     this.beforeAll( async function () {
       this.timeout( 5000 );
       // S143C2099277 is the wargames bluray title
-      await axios.get( 'http://localhost:1337/insert/S143C2099277' );
       response = await axios.get( 'http://localhost:1337/avail/S143C2099277' );
     } );
     it( 'should respond', function () {

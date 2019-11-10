@@ -66,4 +66,4 @@ app.get( '/avail/:itemId', asyncHandler( async ( req, res ) => {
 
 app.get( '*', ( req, res ) => { res.send( 'The Dude does not abide!' ); } );
 
-app.listen( 1337, logger.info( 'server started' ) );
+app.listen( 1337, logger.info( 'server started...' ) );
