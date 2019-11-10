@@ -1,14 +1,13 @@
 {
   "name": "libowski",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Library Chat Bot",
   "author": "Eric B.",
   "license": "ISC",
   "main": "app/server.js",
   "scripts": {
     "start": "nodemon --watch app app/server.js",
-    "test": "curl localhost:1337/find/wargames && curl localhost:1337/now/S143C2099277 && curl localhost:1337/insert/S143C2099277 && curl localhost:1337/avail/S143C2099277",
-    "test-alert": "curl localhost:1337/find/lion+king+2019 && curl localhost:1337/now/S143C3653511 && curl localhost:1337/insert/S143C3653511 && curl localhost:1337/avail/S143C3653511"
+    "test": "mocha --watch ./test --reporter spec"
   },
   "dependencies": {
     "axios": "^0.19.0",
@@ -22,6 +21,7 @@
   "devDependencies": {
     "eslint": "^6.6.0",
     "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-plugin-import": "^2.18.2"
+    "eslint-plugin-import": "^2.18.2",
+    "mocha": "^6.2.2"
   }
 }
