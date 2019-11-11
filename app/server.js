@@ -23,6 +23,15 @@ const dataDirectory = path.join( __dirname, '..', 'data' );
 fs.existsSync( dataDirectory ) || fs.mkdirSync( dataDirectory );
 logger.info( 'data directory in place...' );
 
+// get non holdable avail
+setInterval( () => {
+  const alertIds = ['S143C3658715', 'S143C3653511', 'S143C3646473', 'S143C3643101', 'S143C3640864'];
+  alertIds.forEach( ( alertId ) => {
+    logger.info( `capturing alert id ${alertId}...` );
+    capture.avail( alertId );
+  } );
+}, 900000 );
+
 // instantiate express app
 const app = express();
 
