@@ -1,13 +1,8 @@
 const axios = require( 'axios' );
 const log4js = require( 'log4js' );
+const utils = require( './utils' );
 
 const logger = log4js.getLogger( 'fetch' );
-
-const asyncForEach = async ( array, callback ) => {
-  for ( let index = 0; index < array.length; index += 1 ) {
-    await callback( array[index], index, array ); // eslint-disable-line no-await-in-loop
-  }
-};
 
 const availabilityDetails = async ( itemId ) => {
   logger.debug( `availability for itemId ${itemId}...` );
@@ -76,7 +71,7 @@ const search = async ( keywords ) => {
 
     // format data including first five bibs
     let formattedData = '';
-    await asyncForEach( Object.entries( bibs ).slice( 0, 5 ),
+    await utils.asyncForEach( Object.entries( bibs ).slice( 0, 5 ),
       async ( item ) => {
         const availability = await availabilityDetails( item[1].id );
 
