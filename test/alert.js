@@ -12,6 +12,7 @@ describe( 'Alert', function () {
         timestamp: 1573420574159,
         id: 'S143C2099277',
         title: 'WarGames',
+        subtitle: 'The Movie',
         format: 'BLURAY',
         publicationDate: '2012',
         branchNames: [],
@@ -31,14 +32,12 @@ describe( 'Alert', function () {
   } );
   it( 'should send in', function () {
     const inAlert = [{ ...noAlert[0], branchNames: ['Beaverton Murray Scholls'] }, noAlert[1]];
-    const title = `${inAlert[0].title}${inAlert[0].subtitle
-      ? ` - ${inAlert[0].subtitle}` : ''} (${inAlert[0].format})`;
+    const title = `${inAlert[0].title} - ${inAlert[0].subtitle} (${inAlert[0].format})`;
     assert.equal( availMessage( inAlert ), `${title} is @ Beaverton Murray Scholls` );
   } );
   it( 'should send out', function () {
-    const outAlert = [noAlert[0], { ...noAlert[1], branchNames: ['Beaverton Murray Scholls'] }];
-    const title = `${outAlert[0].title}${outAlert[0].subtitle
-      ? ` - ${outAlert[0].subtitle}` : ''} (${outAlert[0].format})`;
+    const outAlert = [{ ...noAlert[0], subtitle: '' }, { ...noAlert[1], branchNames: ['Beaverton Murray Scholls'] }];
+    const title = `${outAlert[0].title} (${outAlert[0].format})`;
     assert.equal( availMessage( outAlert ), `${title} is GONE @ Beaverton Murray Scholls` );
   } );
 } );
