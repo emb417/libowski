@@ -3,35 +3,25 @@ const path = require( 'path' );
 const asyncHandler = require( 'express-async-handler' );
 const express = require( 'express' );
 const log4js = require( 'log4js' );
+const log4jscfg = require( './log4jscfg' );
 const fetch = require( './fetch' );
 const capture = require( './capture' );
 const query = require( './query' );
 
 // setup logger files and config
-log4js.configure( {
-  appenders: {
-    console: { type: 'console' },
-    file: {
-      type: 'file',
-      filename: 'logs/server.log',
-      maxLogSize: 10485760,
-      backups: 2,
-      compress: true,
-    },
-  },
-  categories: {
-    default: { appenders: ['file', 'console'], level: 'info' },
-  },
-} );
+log4js.configure( log4jscfg );
 const logger = log4js.getLogger( 'Libowski' );
+logger.info( 'Call me "The Dude."' );
 const logDirectory = path.join( __dirname, '..', 'logs' );
 // eslint-disable-next-line no-unused-expressions
 fs.existsSync( logDirectory ) || fs.mkdirSync( logDirectory );
+logger.info( 'logs directory in place...' );
 
 // setup datastore files and config
 const dataDirectory = path.join( __dirname, '..', 'data' );
 // eslint-disable-next-line no-unused-expressions
 fs.existsSync( dataDirectory ) || fs.mkdirSync( dataDirectory );
+logger.info( 'data directory in place...' );
 
 // instantiate express app
 const app = express();
