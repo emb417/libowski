@@ -1,5 +1,3 @@
-const fs = require( 'fs' );
-const path = require( 'path' );
 const asyncHandler = require( 'express-async-handler' );
 const express = require( 'express' );
 const log4js = require( 'log4js' );
@@ -7,22 +5,16 @@ const log4jscfg = require( './log4jscfg' );
 const fetch = require( './fetch' );
 const capture = require( './capture' );
 const query = require( './query' );
-const { asyncForEach } = require( './utils' );
+const { asyncForEach, logSetup, datastoreSetup } = require( './utils' );
 
-// setup logger files and config
+// setup log dir and config logger
 log4js.configure( log4jscfg );
 const logger = log4js.getLogger( 'Libowski' );
 logger.info( 'Call me "The Dude."' );
-const logDirectory = path.join( __dirname, '..', 'logs' );
-// eslint-disable-next-line no-unused-expressions
-fs.existsSync( logDirectory ) || fs.mkdirSync( logDirectory );
-logger.info( 'logs directory in place...' );
+logSetup();
 
-// setup datastore files and config
-const dataDirectory = path.join( __dirname, '..', 'data' );
-// eslint-disable-next-line no-unused-expressions
-fs.existsSync( dataDirectory ) || fs.mkdirSync( dataDirectory );
-logger.info( 'data directory in place...' );
+// setup data dir
+datastoreSetup();
 
 // get non holdable avail
 setInterval( async () => {

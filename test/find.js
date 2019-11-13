@@ -28,8 +28,8 @@ describe( 'Find', function () {
     } );
     it( 'should respond with available', async function () {
       this.timeout( 5000 );
-      // id for 47 meters down, happen to have not holdable availability
-      const availMessage = await fetch.notHoldableAvailability( 'S143C3662707' );
+      // id for spider-man, happens to have not holdable availability
+      const availMessage = await fetch.notHoldableAvailability( 'S143C3643101' );
       assert( availMessage.indexOf( 'Library' ) > -1 );
     } );
   } );
