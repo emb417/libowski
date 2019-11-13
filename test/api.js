@@ -26,7 +26,7 @@ describe( 'Server', function () {
   describe( 'find route', function () {
     let response;
     this.beforeAll( async function () {
-      this.timeout( 5000 );
+      this.timeout( 10000 );
       // wargames is a classic that should return results
       response = await axios.get( 'http://localhost:1337/find/wargames' );
     } );

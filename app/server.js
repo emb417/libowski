@@ -7,7 +7,7 @@ const log4jscfg = require( './log4jscfg' );
 const fetch = require( './fetch' );
 const capture = require( './capture' );
 const query = require( './query' );
-const utils = require( './utils' );
+const { asyncForEach } = require( './utils' );
 
 // setup logger files and config
 log4js.configure( log4jscfg );
@@ -26,15 +26,13 @@ logger.info( 'data directory in place...' );
 
 // get non holdable avail
 setInterval( async () => {
-  const alertIds = ['S143C3658715', 'S143C3653511', 'S143C3646473', 'S143C3643101', 'S143C3640864'];
-  const alertMessages = [];
-  await utils.asyncForEach( alertIds, ( alertId ) => {
+  const alertIds = ['S143C3658715', 'S143C3653511', 'S143C3646473', 'S143C3643101', 'S143C3640864', 'S143C3662707'];
+  await asyncForEach( alertIds, async ( alertId ) => {
     logger.info( `capturing alert id ${alertId}...` );
-    alertMessages.push( capture.avail( alertId ) );
-  } );
-  logger.info( 'sending messages...' );
-  await utils.asyncForEach( alertMessages, ( message ) => {
-    logger.trace( `send message...\n${message}` );
+    await capture.avail( alertId );
+    logger.info( 'query avail...' );
+    const availMessage = await query.avail( alertId );
+    logger.info( `send message...\n${availMessage}` );
   } );
 }, 900000 );
 

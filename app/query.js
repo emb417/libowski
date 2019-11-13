@@ -7,12 +7,15 @@ const logger = log4js.getLogger( 'query' );
 
 const availMessage = ( results ) => {
   logger.debug( 'availMessage...' );
-  if ( results[0].branchNames.length !== results[1].branchNames.length ) {
-    const title = `${results[0].title}${results[0].subtitle
-      ? ` - ${results[0].subtitle}` : ''} (${results[0].format})`;
+  const title = `${results[0].title}${results[0].subtitle
+    ? ` - ${results[0].subtitle}` : ''} (${results[0].format})`;
+  if ( results.length > 1 && results[0].branchNames.length !== results[1].branchNames.length ) {
     return results[0].branchNames.length > results[1].branchNames.length
       ? `${title} is @ ${_.difference( results[0].branchNames, results[1].branchNames )}`
       : `${title} is GONE @ ${_.difference( results[1].branchNames, results[0].branchNames )}`;
+  }
+  if ( results.length === 1 && results[0].branchNames.length > 0 ) {
+    return `${title} is @ ${results[0].branchNames}`;
   }
   return 'No Alert';
 };
