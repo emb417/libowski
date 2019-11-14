@@ -5,21 +5,6 @@ const _ = require( 'lodash' );
 
 const logger = log4js.getLogger( 'query' );
 
-const availMessage = ( results ) => {
-  logger.debug( 'availMessage...' );
-  const title = `${results[0].title}${results[0].subtitle
-    ? ` - ${results[0].subtitle}` : ''} (${results[0].format})`;
-  if ( results.length > 1 && results[0].branchNames.length !== results[1].branchNames.length ) {
-    return results[0].branchNames.length > results[1].branchNames.length
-      ? `${title} is @ ${_.difference( results[0].branchNames, results[1].branchNames )}`
-      : `${title} is GONE @ ${_.difference( results[1].branchNames, results[0].branchNames )}`;
-  }
-  if ( results.length === 1 && results[0].branchNames.length > 0 ) {
-    return `${title} is @ ${results[0].branchNames}`;
-  }
-  return 'No Alert';
-};
-
 const avail = async ( id ) => {
   logger.debug( `avail for ${id}...` );
   const db = Datastore.create( path.join( __dirname, '..', 'data', 'libowski.db' ) );
@@ -35,9 +20,18 @@ const avail = async ( id ) => {
     timestamp: -1,
   } ).limit( 2 );
   logger.trace( `avail results...\n${JSON.stringify( results, null, 2 )}` );
-  const response = availMessage( results );
-  logger.trace( `availMessage response...\n${response}` );
-  return response;
+  logger.debug( 'availMessage...' );
+  const title = `${results[0].title}${results[0].subtitle
+    ? ` - ${results[0].subtitle}` : ''} (${results[0].format})`;
+  if ( results.length > 1 && results[0].branchNames.length !== results[1].branchNames.length ) {
+    return results[0].branchNames.length > results[1].branchNames.length
+      ? `${title} is @ ${_.difference( results[0].branchNames, results[1].branchNames )}`
+      : `${title} is GONE @ ${_.difference( results[1].branchNames, results[0].branchNames )}`;
+  }
+  if ( results.length === 1 && results[0].branchNames.length > 0 ) {
+    return `${title} is @ ${results[0].branchNames}`;
+  }
+  return 'No Alert';
 };
 
-module.exports = { avail, availMessage };
+module.exports = { avail };

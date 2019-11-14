@@ -1,6 +1,6 @@
 const axios = require( 'axios' );
 const log4js = require( 'log4js' );
-const utils = require( './utils' );
+const { asyncForEach } = require( './utils' );
 
 const logger = log4js.getLogger( 'fetch' );
 
@@ -71,7 +71,7 @@ const search = async ( keywords ) => {
 
     // format data including first five bibs
     let formattedData = '';
-    await utils.asyncForEach( Object.entries( bibs ).slice( 0, 5 ),
+    await asyncForEach( Object.entries( bibs ).slice( 0, 5 ),
       async ( item ) => {
         const availability = await availabilityDetails( item[1].id );
 
