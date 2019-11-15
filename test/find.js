@@ -26,7 +26,7 @@ describe( 'Find', function () {
       const availMessage = await fetch.notHoldableAvailability( 'S143C2099277' );
       assert( availMessage.indexOf( 'Not Holdable Unavailable' ) > -1 );
     } );
-    it( 'should respond with available', async function () {
+    it.skip( 'should respond with available', async function () {
       this.timeout( 5000 );
       // id for spider-man, happens to have not holdable availability
       const availMessage = await fetch.notHoldableAvailability( 'S143C3643101' );

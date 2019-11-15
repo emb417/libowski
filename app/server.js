@@ -1,15 +1,16 @@
-const fs = require( 'fs' );
-const path = require( 'path' );
-const dotenv = require( 'dotenv' ).config().parsed;
+require( 'dotenv' ).config();
 const asyncHandler = require( 'express-async-handler' );
 const express = require( 'express' );
-const nodemailer = require( 'nodemailer' );
+const fs = require( 'fs' );
 const log4js = require( 'log4js' );
-const fetch = require( './fetch' );
+const path = require( 'path' );
+
 const capture = require( './capture' );
+const fetch = require( './fetch' );
 const query = require( './query' );
-const { transportConfig } = require( './smtp' );
-const { asyncForEach } = require( './utils' );
+const slack = require( './slack' );
+const smtp = require( './smtp' );
+const utils = require( './utils' );
 
 // setup log dir and config logger
 const log4jscfg = {
@@ -41,31 +42,23 @@ const dataDirectory = path.join( __dirname, '..', 'data' );
 fs.existsSync( dataDirectory ) || fs.mkdirSync( dataDirectory );
 logger.info( 'data directory in place...' );
 
-logger.info( 'getting non holdable avail in 15 minutes...' );
+const interval = process.env.NODE_ENV ? process.env.INTERVAL : process.env.TEST_INTERVAL;
+logger.info( `getting non holdable avail in ${( interval / 60000 )} minutes...` );
 // get non holdable avail
 setInterval( async () => {
-  const alertIds = ['S143C3658715', 'S143C3653511', 'S143C3646473', 'S143C3643101', 'S143C3640864', 'S143C3662707'];
-  await asyncForEach( alertIds, async ( alertId ) => {
+  const alertIds = ['S143C3658715', 'S143C3653511', 'S143C3646473', 'S143C3643101', 'S143C3640864'];
+  await utils.asyncForEach( alertIds, async ( alertId ) => {
     logger.info( `capturing alert id ${alertId}...` );
     await capture.avail( alertId );
     logger.info( 'query avail...' );
     const availMessage = await query.avail( alertId );
     if ( availMessage !== 'No Alert' ) {
-      const smtpTransport = nodemailer.createTransport( transportConfig() );
-      logger.info( 'send message...' ); logger.debug( `${availMessage}` );
-      const mailOptions = {
-        from: `${dotenv.USER_NAME} <${dotenv.USER_EMAIL}>`,
-        to: dotenv.SMS,
-        subject: `${alertId} Available`,
-        text: `${availMessage}`,
-      };
-      await smtpTransport.sendMail( mailOptions, ( error, response ) => {
-        if ( error ) { logger.error( error ); } else { logger.trace( response ); }
-        smtpTransport.close();
-      } );
+      logger.info( 'alert...' );
+      slack.postMessage( `${alertId} - ${availMessage}` );
+      smtp.sendMessage( `${alertId} - ${availMessage}` );
     }
   } );
-}, dotenv.INTERVAL );
+}, interval );
 
 // instantiate express app
 const app = express();
