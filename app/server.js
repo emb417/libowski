@@ -1,14 +1,20 @@
-const fs = require( 'fs' );
-const path = require( 'path' );
+require( 'dotenv' ).config();
+const { CronJob } = require( 'cron' );
 const asyncHandler = require( 'express-async-handler' );
 const express = require( 'express' );
+const fs = require( 'fs' );
 const log4js = require( 'log4js' );
-const fetch = require( './fetch' );
-const capture = require( './capture' );
-const query = require( './query' );
+const path = require( 'path' );
 
-// setup logger files and config
-log4js.configure( {
+const capture = require( './capture' );
+const fetch = require( './fetch' );
+const query = require( './query' );
+const slack = require( './slack' );
+const smtp = require( './smtp' );
+const utils = require( './utils' );
+
+// setup log dir and config logger
+const log4jscfg = {
   appenders: {
     console: { type: 'console' },
     file: {
@@ -22,16 +28,40 @@ log4js.configure( {
   categories: {
     default: { appenders: ['file', 'console'], level: 'info' },
   },
-} );
+};
+log4js.configure( log4jscfg );
 const logger = log4js.getLogger( 'Libowski' );
+logger.info( 'Call me "The Dude."' );
 const logDirectory = path.join( __dirname, '..', 'logs' );
 // eslint-disable-next-line no-unused-expressions
 fs.existsSync( logDirectory ) || fs.mkdirSync( logDirectory );
+logger.info( 'logs directory in place...' );
 
-// setup datastore files and config
+// setup data dir
 const dataDirectory = path.join( __dirname, '..', 'data' );
 // eslint-disable-next-line no-unused-expressions
 fs.existsSync( dataDirectory ) || fs.mkdirSync( dataDirectory );
+logger.info( 'data directory in place...' );
+
+const interval = process.env.NODE_ENV ? '0 */15 8-20 * * *' : '*/15 * * * * *';
+logger.info( `getting non holdable avail via cron ${interval}` );
+// get non holdable avail
+const job = new CronJob( interval, async () => {
+  const alertIds = ['S143C3658715', 'S143C3653511', 'S143C3646473', 'S143C3643101', 'S143C3640864'];
+  await utils.asyncForEach( alertIds, async ( alertId ) => {
+    logger.info( `capturing alert id ${alertId}...` );
+    await capture.avail( alertId );
+    logger.info( 'query avail...' );
+    const availMessage = await query.avail( alertId );
+    if ( availMessage !== 'No Alert' ) {
+      logger.info( 'alert...' );
+      slack.postMessage( `${alertId} - ${availMessage}` );
+      smtp.sendMessage( `${alertId} - ${availMessage}` );
+    }
+  } );
+} );
+
+job.start();
 
 // instantiate express app
 const app = express();
@@ -66,4 +96,4 @@ app.get( '/avail/:itemId', asyncHandler( async ( req, res ) => {
 
 app.get( '*', ( req, res ) => { res.send( 'The Dude does not abide!' ); } );
 
-app.listen( 1337, logger.info( 'server started' ) );
+app.listen( ( process.env.PORT || 1337 ), logger.info( 'server started...' ) );
