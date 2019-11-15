@@ -1,4 +1,5 @@
 require( 'dotenv' ).config();
+const { CronJob } = require( 'cron' );
 const asyncHandler = require( 'express-async-handler' );
 const express = require( 'express' );
 const fs = require( 'fs' );
@@ -42,10 +43,10 @@ const dataDirectory = path.join( __dirname, '..', 'data' );
 fs.existsSync( dataDirectory ) || fs.mkdirSync( dataDirectory );
 logger.info( 'data directory in place...' );
 
-const interval = process.env.NODE_ENV ? process.env.INTERVAL : process.env.TEST_INTERVAL;
-logger.info( `getting non holdable avail in ${( interval / 60000 )} minutes...` );
+const interval = process.env.NODE_ENV ? '0 */15 8-20 * * *' : '*/10 * * * * *';
+logger.info( `getting non holdable avail via cron ${interval}` );
 // get non holdable avail
-setInterval( async () => {
+const job = new CronJob( interval, async () => {
   const alertIds = ['S143C3658715', 'S143C3653511', 'S143C3646473', 'S143C3643101', 'S143C3640864'];
   await utils.asyncForEach( alertIds, async ( alertId ) => {
     logger.info( `capturing alert id ${alertId}...` );
@@ -58,7 +59,9 @@ setInterval( async () => {
       smtp.sendMessage( `${alertId} - ${availMessage}` );
     }
   } );
-}, interval );
+} );
+
+job.start();
 
 // instantiate express app
 const app = express();
@@ -93,4 +96,4 @@ app.get( '/avail/:itemId', asyncHandler( async ( req, res ) => {
 
 app.get( '*', ( req, res ) => { res.send( 'The Dude does not abide!' ); } );
 
-app.listen( 1337, logger.info( 'server started...' ) );
+app.listen( ( process.env.PORT || 1337 ), logger.info( 'server started...' ) );
