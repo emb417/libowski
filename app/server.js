@@ -43,7 +43,7 @@ const dataDirectory = path.join( __dirname, '..', 'data' );
 fs.existsSync( dataDirectory ) || fs.mkdirSync( dataDirectory );
 logger.info( 'data directory in place...' );
 
-const interval = process.env.NODE_ENV ? '0 */15 8-20 * * *' : '*/10 * * * * *';
+const interval = process.env.NODE_ENV ? '0 */15 8-20 * * *' : '*/15 * * * * *';
 logger.info( `getting non holdable avail via cron ${interval}` );
 // get non holdable avail
 const job = new CronJob( interval, async () => {
