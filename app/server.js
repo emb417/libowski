@@ -1,6 +1,7 @@
 require( 'dotenv' ).config();
 const { CronJob } = require( 'cron' );
 const asyncHandler = require( 'express-async-handler' );
+const bodyParser = require( 'body-parser' );
 const express = require( 'express' );
 const fs = require( 'fs' );
 const log4js = require( 'log4js' );
@@ -26,7 +27,7 @@ const log4jscfg = {
     },
   },
   categories: {
-    default: { appenders: ['file', 'console'], level: 'info' },
+    default: { appenders: ['file', 'console'], level: 'trace' },
   },
 };
 log4js.configure( log4jscfg );
@@ -70,7 +71,21 @@ const app = express();
 // express middleware
 app.use( log4js.connectLogger( logger ) );
 
+app.use( bodyParser.urlencoded( { extended: false } ) );
+
 // express routes
+app.post( '/alert/activate', asyncHandler( async ( req, res ) => {
+  logger.info( 'activating alert...' );
+  const response = await capture.alertStatus( req.body.text, true );
+  res.send( response );
+} ) );
+
+app.post( '/alert/deactivate', asyncHandler( async ( req, res ) => {
+  logger.info( 'deactivating alert...' );
+  const response = await capture.alertStatus( req.body.text, false );
+  res.send( response );
+} ) );
+
 app.get( '/alert/activate/:itemId', asyncHandler( async ( req, res ) => {
   logger.info( 'activating alert...' );
   const response = await capture.alertStatus( req.params.itemId, true );
@@ -105,6 +120,18 @@ app.get( '/now/:itemId', asyncHandler( async ( req, res ) => {
   logger.info( `fetching availability for itemId ${req.params.itemId}...` );
   const results = await fetch.notHoldableAvailability( req.params.itemId );
   res.send( results );
+} ) );
+
+app.get( '/oauth', asyncHandler( async ( req, res ) => {
+  if ( !req.query.code ) {
+    res.status( 500 );
+    res.send( { Error: 'I need a code, man.' } );
+    logger.info( 'slack oauth no code...' );
+  } else {
+    logger.info( `slack oauth ${req.query.code}...` );
+    const response = await fetch.slackOauth( req.query.code );
+    res.send( response );
+  }
 } ) );
 
 app.get( '*', ( req, res ) => { res.send( 'The Dude does not abide!' ); } );

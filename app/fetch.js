@@ -84,4 +84,12 @@ const search = async ( keywords ) => {
   } catch ( err ) { return err; }
 };
 
-module.exports = { search, notHoldableAvailability };
+const slackOauth = async ( code ) => {
+  logger.debug( `slackOauth ${code}...` );
+  try {
+    const response = await axios.get( `https://slack.com/api/oauth.access?code=${code}&client_id=${process.env.SLACK_CLIENT_ID}&client_secret=${process.env.SLACK_CLIENT_SECRET}'` );
+    return response.body;
+  } catch ( err ) { logger.error( err ); return err; }
+};
+
+module.exports = { search, slackOauth, notHoldableAvailability };
