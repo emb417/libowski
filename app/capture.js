@@ -7,6 +7,24 @@ const Datastore = require( 'nedb' );
 
 const db = new Datastore( { filename: path.join( __dirname, '..', 'data', 'libowski.db' ), autoload: true } );
 
+const alertStatus = async ( itemId, alertActive ) => {
+  logger.debug( `activating alerts for itemId ${itemId}...` );
+
+  try {
+    db.insert( {
+      timestamp: Date.now(),
+      eventType: 'alert',
+      itemId,
+      alertActive,
+    }, ( err, docs ) => {
+      if ( err ) { logger.error( err ); return err; }
+      logger.trace( `itemId inserted...\n\n${JSON.stringify( docs )}\n` );
+      return { docs };
+    } );
+    return `...${alertActive ? 'activated' : 'deactivated'} ${itemId}\n`;
+  } catch ( err ) { logger.error( err ); return err; }
+};
+
 const avail = async ( itemId ) => {
   logger.debug( `not holdable availability for itemId ${itemId}...` );
 
@@ -30,6 +48,7 @@ const avail = async ( itemId ) => {
 
     db.insert( {
       timestamp: Date.now(),
+      eventType: 'avail',
       id: entity.briefInfo.id,
       title: entity.briefInfo.title,
       subtitle: entity.briefInfo.subtitle,
@@ -46,4 +65,4 @@ const avail = async ( itemId ) => {
   } catch ( err ) { logger.error( err ); return err; }
 };
 
-module.exports = { avail };
+module.exports = { avail, alertStatus };

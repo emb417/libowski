@@ -70,15 +70,27 @@ const app = express();
 app.use( log4js.connectLogger( logger ) );
 
 // express routes
+app.get( '/alert/activate/:itemId', asyncHandler( async ( req, res ) => {
+  logger.info( 'activating alert...' );
+  const response = await capture.alertStatus( req.params.itemId, true );
+  res.send( response );
+} ) );
+
+app.get( '/alert/deactivate/:itemId', asyncHandler( async ( req, res ) => {
+  logger.info( 'deactivating alert...' );
+  const response = await capture.alertStatus( req.params.itemId, false );
+  res.send( response );
+} ) );
+
+app.get( '/avail/:itemId', asyncHandler( async ( req, res ) => {
+  logger.info( 'querying avail...' );
+  const results = await query.avail( req.params.itemId );
+  res.send( `...find avail for ${req.params.itemId}\n${JSON.stringify( results, null, 2 )}\n` );
+} ) );
+
 app.get( '/find/:keywords', asyncHandler( async ( req, res ) => {
   logger.info( `searching for keywords ${req.params.keywords}...` );
   const results = await fetch.search( req.params.keywords );
-  res.send( results );
-} ) );
-
-app.get( '/now/:itemId', asyncHandler( async ( req, res ) => {
-  logger.info( `fetching availability for itemId ${req.params.itemId}...` );
-  const results = await fetch.notHoldableAvailability( req.params.itemId );
   res.send( results );
 } ) );
 
@@ -88,10 +100,10 @@ app.get( '/insert/:itemId', asyncHandler( async ( req, res ) => {
   res.send( results );
 } ) );
 
-app.get( '/avail/:itemId', asyncHandler( async ( req, res ) => {
-  logger.info( 'querying avail...' );
-  const results = await query.avail( req.params.itemId );
-  res.send( `...find avail for ${req.params.itemId}\n${JSON.stringify( results, null, 2 )}\n` );
+app.get( '/now/:itemId', asyncHandler( async ( req, res ) => {
+  logger.info( `fetching availability for itemId ${req.params.itemId}...` );
+  const results = await fetch.notHoldableAvailability( req.params.itemId );
+  res.send( results );
 } ) );
 
 app.get( '*', ( req, res ) => { res.send( 'The Dude does not abide!' ); } );
