@@ -5,16 +5,33 @@ const _ = require( 'lodash' );
 
 const logger = log4js.getLogger( 'query' );
 
-const avail = async ( id ) => {
-  logger.debug( `avail for ${id}...` );
+const alerts = async () => {
+  logger.debug( 'get all alerts...' );
   const db = Datastore.create( path.join( __dirname, '..', 'data', 'libowski.db' ) );
-  const results = await db.find( { id }, {
+  const results = await db.find( { eventType: 'alert' }, {
     timestamp: 1,
-    id: 1,
-    title: 1,
-    format: 1,
-    publicationDate: 1,
+    itemId: 1,
+    alertActive: 1,
+    _id: 0,
+  } ).sort( {
+    timestamp: 1,
+  } );
+  logger.trace( `...results ${JSON.stringify( results )}` );
+  const uniqueItems = [...new Map( results.map( ( row ) => [row.itemId, row] ) ).values()];
+  logger.trace( `...uniqueItems ${JSON.stringify( uniqueItems )}` );
+  return uniqueItems.filter( ( item ) => item.alertActive ).map( ( item ) => item.itemId );
+};
+
+const avail = async ( itemId ) => {
+  logger.debug( `avail for ${itemId}...` );
+  const db = Datastore.create( path.join( __dirname, '..', 'data', 'libowski.db' ) );
+  const results = await db.find( { itemId, eventType: 'avail' }, {
+    timestamp: 1,
+    itemId: 1,
     branchNames: 1,
+    title: 1,
+    subtitle: 1,
+    format: 1,
     _id: 0,
   } ).sort( {
     timestamp: -1,
@@ -34,4 +51,4 @@ const avail = async ( id ) => {
   return 'No Alert';
 };
 
-module.exports = { avail };
+module.exports = { avail, alerts };

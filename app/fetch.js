@@ -73,9 +73,9 @@ const search = async ( keywords ) => {
     let formattedData = '';
     await asyncForEach( Object.entries( bibs ).slice( 0, 5 ),
       async ( item ) => {
-        const availability = await availabilityDetails( item[1].id );
+        const availability = await availabilityDetails( item[1].itemId );
 
-        formattedData += `----${item[1].id}`;
+        formattedData += `----${item[1].itemId}`;
         formattedData += `----${item[1].availability.availableCopies}/${item[1].availability.totalCopies}`;
         formattedData += `----${item[1].briefInfo.title}${item[1].briefInfo.subtitle ? ` - ${item[1].briefInfo.subtitle}` : ''} (${item[1].briefInfo.format})\n`;
         formattedData += availability === '' ? '' : `${availability}\n`;
@@ -84,4 +84,12 @@ const search = async ( keywords ) => {
   } catch ( err ) { return err; }
 };
 
-module.exports = { search, notHoldableAvailability };
+const slackOauth = async ( code ) => {
+  logger.debug( `slackOauth ${code}...` );
+  try {
+    const response = await axios.get( `https://slack.com/api/oauth.access?code=${code}&client_id=${process.env.SLACK_CLIENT_ID}&client_secret=${process.env.SLACK_CLIENT_SECRET}'` );
+    return response.body;
+  } catch ( err ) { logger.error( err ); return err; }
+};
+
+module.exports = { search, slackOauth, notHoldableAvailability };
