@@ -49,13 +49,14 @@ const avail = async ( itemId ) => {
     db.insert( {
       timestamp: Date.now(),
       eventType: 'avail',
-      id: entity.briefInfo.id,
+      itemId: entity.briefInfo.id,
+      branchNames,
+      publicationDate: entity.briefInfo.publicationDate,
       title: entity.briefInfo.title,
       subtitle: entity.briefInfo.subtitle,
       format: entity.briefInfo.format,
       description: entity.briefInfo.description,
-      publicationDate: entity.briefInfo.publicationDate,
-      branchNames,
+
     }, ( err, docs ) => {
       if ( err ) { logger.error( err ); return err; }
       logger.trace( `entity inserted...\n\n${JSON.stringify( docs )}\n` );

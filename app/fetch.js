@@ -73,9 +73,9 @@ const search = async ( keywords ) => {
     let formattedData = '';
     await asyncForEach( Object.entries( bibs ).slice( 0, 5 ),
       async ( item ) => {
-        const availability = await availabilityDetails( item[1].id );
+        const availability = await availabilityDetails( item[1].itemId );
 
-        formattedData += `----${item[1].id}`;
+        formattedData += `----${item[1].itemId}`;
         formattedData += `----${item[1].availability.availableCopies}/${item[1].availability.totalCopies}`;
         formattedData += `----${item[1].briefInfo.title}${item[1].briefInfo.subtitle ? ` - ${item[1].briefInfo.subtitle}` : ''} (${item[1].briefInfo.format})\n`;
         formattedData += availability === '' ? '' : `${availability}\n`;

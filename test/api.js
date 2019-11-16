@@ -79,4 +79,32 @@ describe( 'Server', function () {
       assert.ok( response.data );
     } );
   } );
+  describe( 'alert activate route', function () {
+    let response;
+    this.beforeAll( async function () {
+      this.timeout( 5000 );
+      // ['S143C3658715', 'S143C3653511', 'S143C3646473', 'S143C3643101', 'S143C3640864'];
+      response = await axios.get( 'http://localhost:1337/alert/activate/S143C3658715' );
+    } );
+    it( 'should respond', function () {
+      assert.equal( response.status, '200' );
+    } );
+    it( 'should have data', function () {
+      assert.ok( response.data );
+    } );
+  } );
+  describe( 'alert deactivate route', function () {
+    let response;
+    this.beforeAll( async function () {
+      this.timeout( 5000 );
+      // ['S143C3658715', 'S143C3653511', 'S143C3646473', 'S143C3643101', 'S143C3640864'];
+      response = await axios.get( 'http://localhost:1337/alert/deactivate/S143C3658715' );
+    } );
+    it( 'should respond', function () {
+      assert.equal( response.status, '200' );
+    } );
+    it( 'should have data', function () {
+      assert.ok( response.data );
+    } );
+  } );
 } );

@@ -3,6 +3,7 @@
 /* eslint-disable no-undef */
 const assert = require( 'assert' );
 const query = require( '../app/query' );
+const capture = require( '../app/capture' );
 
 describe( 'Alert', function () {
   let noAlert = [];
@@ -10,7 +11,7 @@ describe( 'Alert', function () {
     noAlert = [
       {
         timestamp: 1573420574159,
-        id: 'S143C2099277',
+        itemId: 'S143C2099277',
         title: 'WarGames',
         subtitle: 'The Movie',
         format: 'BLURAY',
@@ -19,13 +20,17 @@ describe( 'Alert', function () {
       },
       {
         timestamp: 1573420540596,
-        id: 'S143C2099277',
+        itemId: 'S143C2099277',
         title: 'WarGames',
         format: 'BLURAY',
         publicationDate: '2012',
         branchNames: [],
       },
     ];
+  } );
+  it( 'should capture avail', async function () {
+    const captureAvail = await capture.avail( 'S143C2099277' );
+    assert.equal( captureAvail, '...inserted WarGames\n\n' );
   } );
   it( 'should not send', async function () {
     const alert = await query.avail( 'S143C2099277' );

@@ -47,7 +47,8 @@ const interval = process.env.NODE_ENV ? '0 */15 8-20 * * *' : '*/15 * * * * *';
 logger.info( `getting non holdable avail via cron ${interval}` );
 // get non holdable avail
 const job = new CronJob( interval, async () => {
-  const alertIds = ['S143C3658715', 'S143C3653511', 'S143C3646473', 'S143C3643101', 'S143C3640864'];
+  const alertIds = await query.alerts();
+  logger.debug( `...alert ids ${alertIds}` );
   await utils.asyncForEach( alertIds, async ( alertId ) => {
     logger.info( `capturing alert id ${alertId}...` );
     await capture.avail( alertId );
