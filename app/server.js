@@ -80,9 +80,7 @@ app.post( '/alert/activate', asyncHandler( async ( req, res ) => {
   logger.info( 'activating alert...' );
   // text and response_type will destructure to slack keys
   const text = await capture.alertStatus( req.body.text, true );
-  // eslint-disable-next-line camelcase
-  const response_type = 'in_channel'; // use ephemeral to respond only to user
-  res.send( { text, response_type } );
+  res.send( { text, response_type: 'in_channel' } );
 } ) );
 
 app.get( '/alert/activate/:itemId', asyncHandler( async ( req, res ) => {
@@ -95,9 +93,7 @@ app.post( '/alert/deactivate', asyncHandler( async ( req, res ) => {
   logger.info( 'deactivating alert...' );
   // text and response_type will destructure to slack keys
   const text = await capture.alertStatus( req.body.text, true );
-  // eslint-disable-next-line camelcase
-  const response_type = 'in_channel'; // use ephemeral to respond only to user
-  res.send( { text, response_type } );
+  res.send( { text, response_type: 'in_channel' } );
 } ) );
 
 app.get( '/alert/deactivate/:itemId', asyncHandler( async ( req, res ) => {
@@ -107,7 +103,7 @@ app.get( '/alert/deactivate/:itemId', asyncHandler( async ( req, res ) => {
 } ) );
 
 app.post( '/find', asyncHandler( async ( req, res ) => {
-  res.send( { text: 'The Dude abides...', response_type: 'ephemeral' } );
+  res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `searching by keywords ${req.body.text}...` );
   const results = await fetch.searchByKeywords( req.body.text );
   slack.sendItemInfo( results, req.body.response_url)
@@ -120,7 +116,7 @@ app.get( '/find/:keywords', asyncHandler( async ( req, res ) => {
 } ) );
 
 app.post( '/now', asyncHandler( async ( req, res ) => {
-  res.send( { text: 'The Dude abides...', response_type: 'ephemeral' } );
+  res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `fetching info for itemId ${req.body.text}...` );
   const results = await fetch.infoById( req.body.text );
   slack.sendItemInfo( [results], req.body.response_url)
