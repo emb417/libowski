@@ -2,58 +2,57 @@
 
 The Great Libowski is an aspiring chat bot that allows you to interact with the [Washington County Cooperative Library](https://wccls.bibliocommons.com/) to find items based on keyword searches and to show which branches have the available items.
 
-## Start Server
+## Setup Server
+libowski can run as a stand alone express app or it can be used by an installed slack app, in either case dotenv is used for ids and secrets supporting sending both [smtp via gmail](https://github.com/emb417/libowski/blob/master/app/smtp.js) or [slacks](https://github.com/emb417/libowski/blob/master/app/slack.js).
 
-1. Clone repo
+1. dotenv for smtp via gmail
 ```
-git clone git@github.com:emb417/libowski.git
+CLIENT_ID=
+CLIENT_SECRET=
+REFRESH_TOKEN=
+SCOPE=https://mail.google.com/
+REDIRECT_URL=https://developers.google.com/oauthplayground
+USER_EMAIL=
+USER_NAME=
+SMTP_ADDRESSES=
 ```
-2. Install specific nodejs version
+2. dotenv for slack
 ```
-nvm install 12.12.0
+SLACK_WEBHOOK_URL=
+SLACK_OAUTH_ACCESS_TOKEN=
+SLACK_APP_ID=
+SLACK_CLIENT_ID=
+SLACK_CLIENT_SECRET=
+SLACK_SIGNING_SECRET=
 ```
-3. Install app
-```
-npm i
-```
-4. Start app
+3. Start app with alerts scheduled every 15 seconds
 ```
 npm start
 ```
-5. Test app
+4. OR start app in prod mode with alerts every 15 minutes
 ```
-curl http://127.0.0.1:1337/find/wargames to test
+npm run start-prod
 ```
-  * Server creates needed logs dir on start
+
+  * Server creates needed dirs on start
     * app logs to logs/server.log
-  * listens on port 1337
+    * data saves to data/libowski.db
+  * http listens on port 1337
   * uses nodemon to reload with changes in app dir 
 
-# Global modules
-* server handles logging and routing
-* fetch handles external api requests
+## App modules
+### server
+* logging, scheduling alerts, and routing gets/posts
+### fetch
+* external api requests to wccls
+### query
+* nedb finds for alerts
+### capture
+* nedb inserts for alerts and availability changes
+### slack
+* formatting blocks
+### smtp
+* sends emails via gmail
 
-# Example API Usage
-
-### Request:
-```
-curl http://127.0.0.1:1337/find/wargames
-```
-
-### Response:
-* Returns first 5 results with id, # of in / total items, title - subtitle (format), and branch names where item is available now
-```javascript
-----S143C2099296----2/5----Wargames (DVD)
-Hillsboro Brookwood Library
-Tigard Public Library
-----S143C609225----4/5----WarGames (DVD)
-Beaverton City Library
-Beaverton City Library
-Cedar Mill Library
-Hillsboro Shute Park Library
-----S143C2099277----1/2----WarGames (BLURAY)
-Hillsboro Brookwood Library
-----S143C3526699----1/1----Wargaming - An Introduction (BK)
-North Plains Public Library
-----S143C2708912----0/1----Frostgrave - Fantasy Wargames in the Frozen City (BK)
-```
+## Tests
+Always needs improvement...
