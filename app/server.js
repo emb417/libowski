@@ -59,7 +59,7 @@ const job = new CronJob( interval, async () => {
     const availMessage = await query.avail( alertId );
     if ( availMessage !== 'No Alert' ) {
       logger.info( 'alert...' );
-      slack.postMessage( `${alertId} - ${availMessage}` );
+      slack.sendAlert( `${alertId} - ${availMessage}` );
       smtp.sendMessage( `${alertId} - ${availMessage}` );
     }
   } );
@@ -107,23 +107,23 @@ app.get( '/alert/deactivate/:itemId', asyncHandler( async ( req, res ) => {
 } ) );
 
 app.post( '/find', asyncHandler( async ( req, res ) => {
-  res.send( 'The Dude abides...' );
-  logger.info( `searching for keywords ${req.body.text}...` );
-  const results = await fetch.search( req.body.text );
-  slack.replyMessage( results, req.body.response_url)
+  res.send( { text: 'The Dude abides...', response_type: 'ephemeral' } );
+  logger.info( `searching by keywords ${req.body.text}...` );
+  const results = await fetch.searchByKeywords( req.body.text );
+  slack.sendItemInfo( results, req.body.response_url)
 } ) );
 
 app.get( '/find/:keywords', asyncHandler( async ( req, res ) => {
-  logger.info( `searching for keywords ${req.params.keywords}...` );
+  logger.info( `searching by keywords ${req.params.keywords}...` );
   const results = await fetch.search( req.params.keywords );
   res.send( results );
 } ) );
 
 app.post( '/now', asyncHandler( async ( req, res ) => {
-  res.send( 'The Dude abides...' );
-  logger.info( `fetching availability for itemId ${req.body.text}...` );
-  const results = await fetch.notHoldableAvailability( req.body.text );
-  slack.replyMessage( results, req.body.response_url)
+  res.send( { text: 'The Dude abides...', response_type: 'ephemeral' } );
+  logger.info( `fetching info for itemId ${req.body.text}...` );
+  const results = await fetch.infoById( req.body.text );
+  slack.sendItemInfo( [results], req.body.response_url)
 } ) );
 
 app.get( '/now/:itemId', asyncHandler( async ( req, res ) => {

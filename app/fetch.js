@@ -37,6 +37,18 @@ const notHoldableAvailability = async ( itemId ) => {
   } catch ( err ) { logger.error( err ); return err; }
 };
 
+const infoById = async ( itemId ) => {
+  try {
+    logger.debug( `getting info for itemId ${itemId}...` );
+    const { data } = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/availability/${itemId}` );
+    logger.debug( '...got info response' );
+    logger.trace( JSON.stringify( data, null, 2 ) );
+    const { id, availability, briefInfo } = data.entities.bibs[itemId];
+    const availabilities = data.items;
+    return { id, availability, availabilities, briefInfo };
+  } catch ( err ) { logger.error( err ); return err; }
+};
+
 const search = async ( keywords ) => {
   try {
     logger.debug( `getting search results for keywords ${keywords}...` );
@@ -75,4 +87,24 @@ const search = async ( keywords ) => {
   } catch ( err ) { logger.error( err ); return err; }
 };
 
-module.exports = { search, notHoldableAvailability };
+const searchByKeywords = async ( keywords ) => {
+  try {
+    logger.debug( `getting search results for keywords ${keywords}...` );
+    const searchResults = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/bibs/search?searchType=smart&query=${keywords}` );
+    logger.debug( '...got searchResults' );
+    const { bibs } = searchResults.data.entities;
+    logger.trace( JSON.stringify( bibs, null, 2 ) );
+    const searchArray = [];
+    await asyncForEach( Object.entries( bibs ).slice( 0, 3 ),
+      async ( bib ) => {
+        logger.debug( 'bib...' );
+        logger.trace( JSON.stringify( bib, null, 2 ) );
+        const { id } = bib[1];
+        const item = await infoById( id );
+        searchArray.push( item );
+      } );
+    return searchArray;
+  } catch ( err ) { logger.error( err ); return err; }
+};
+
+module.exports = { notHoldableAvailability, infoById, search, searchByKeywords };
