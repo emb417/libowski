@@ -33,6 +33,8 @@ const log4jscfg = {
 log4js.configure( log4jscfg );
 const logger = log4js.getLogger( 'Libowski' );
 logger.info( 'Call me "The Dude."' );
+logger.debug( 'Or his Dudeness' );
+logger.trace( 'Or duder, or El Duderino, if you\'re not into the whole brevity thing.' );
 const logDirectory = path.join( __dirname, '..', 'logs' );
 // eslint-disable-next-line no-unused-expressions
 fs.existsSync( logDirectory ) || fs.mkdirSync( logDirectory );
@@ -57,7 +59,7 @@ const job = new CronJob( interval, async () => {
     const availMessage = await query.avail( alertId );
     if ( availMessage !== 'No Alert' ) {
       logger.info( 'alert...' );
-      slack.postMessage( `${alertId} - ${availMessage}` );
+      slack.sendAlert( `${alertId} - ${availMessage}` );
       smtp.sendMessage( `${alertId} - ${availMessage}` );
     }
   } );
@@ -76,14 +78,9 @@ app.use( bodyParser.urlencoded( { extended: false } ) );
 // express routes
 app.post( '/alert/activate', asyncHandler( async ( req, res ) => {
   logger.info( 'activating alert...' );
-  const response = await capture.alertStatus( req.body.text, true );
-  res.send( response );
-} ) );
-
-app.post( '/alert/deactivate', asyncHandler( async ( req, res ) => {
-  logger.info( 'deactivating alert...' );
-  const response = await capture.alertStatus( req.body.text, false );
-  res.send( response );
+  // text and response_type will destructure to slack keys
+  const text = await capture.alertStatus( req.body.text, true );
+  res.send( { text, response_type: 'in_channel' } );
 } ) );
 
 app.get( '/alert/activate/:itemId', asyncHandler( async ( req, res ) => {
@@ -92,28 +89,37 @@ app.get( '/alert/activate/:itemId', asyncHandler( async ( req, res ) => {
   res.send( response );
 } ) );
 
+app.post( '/alert/deactivate', asyncHandler( async ( req, res ) => {
+  logger.info( 'deactivating alert...' );
+  // text and response_type will destructure to slack keys
+  const text = await capture.alertStatus( req.body.text, true );
+  res.send( { text, response_type: 'in_channel' } );
+} ) );
+
 app.get( '/alert/deactivate/:itemId', asyncHandler( async ( req, res ) => {
   logger.info( 'deactivating alert...' );
   const response = await capture.alertStatus( req.params.itemId, false );
   res.send( response );
 } ) );
 
-app.get( '/avail/:itemId', asyncHandler( async ( req, res ) => {
-  logger.info( 'querying avail...' );
-  const results = await query.avail( req.params.itemId );
-  res.send( `...find avail for ${req.params.itemId}\n${JSON.stringify( results, null, 2 )}\n` );
+app.post( '/find', asyncHandler( async ( req, res ) => {
+  res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
+  logger.info( `searching by keywords ${req.body.text}...` );
+  const results = await fetch.searchByKeywords( req.body.text );
+  slack.sendItemInfo( results, req.body.response_url)
 } ) );
 
 app.get( '/find/:keywords', asyncHandler( async ( req, res ) => {
-  logger.info( `searching for keywords ${req.params.keywords}...` );
+  logger.info( `searching by keywords ${req.params.keywords}...` );
   const results = await fetch.search( req.params.keywords );
   res.send( results );
 } ) );
 
-app.get( '/insert/:itemId', asyncHandler( async ( req, res ) => {
-  logger.info( `inserting avail for itemId ${req.params.itemId}...` );
-  const results = await capture.avail( req.params.itemId );
-  res.send( results );
+app.post( '/now', asyncHandler( async ( req, res ) => {
+  res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
+  logger.info( `fetching info for itemId ${req.body.text}...` );
+  const results = await fetch.infoById( req.body.text );
+  slack.sendItemInfo( [results], req.body.response_url)
 } ) );
 
 app.get( '/now/:itemId', asyncHandler( async ( req, res ) => {
@@ -129,7 +135,7 @@ app.get( '/oauth', asyncHandler( async ( req, res ) => {
     logger.info( 'slack oauth no code...' );
   } else {
     logger.info( `slack oauth ${req.query.code}...` );
-    const response = await fetch.slackOauth( req.query.code );
+    const response = await slack.oauth( req.query.code );
     res.send( response );
   }
 } ) );

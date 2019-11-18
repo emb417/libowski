@@ -4,38 +4,13 @@ const { asyncForEach } = require( './utils' );
 
 const logger = log4js.getLogger( 'fetch' );
 
-const availabilityDetails = async ( itemId ) => {
-  logger.debug( `availability for itemId ${itemId}...` );
-
-  try {
-    const availabilityResults = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/availability/${itemId}` );
-    logger.trace( 'availability response...\n' ); // ${JSON.stringify( items, null, 2 )}
-    const { items } = availabilityResults.data;
-
-    let formattedData = '';
-    items.forEach(
-      ( item ) => {
-        if ( item.status === 'AVAILABLE_ITEMS' ) {
-          item.items.forEach(
-            ( unit ) => {
-              logger.trace( 'unit...\n' ); // ${JSON.stringify( unit, null, 2 )}
-              formattedData += `${unit.branchName}${unit.collection === 'Best Sellers - Not Holdable' ? ' (Not Holdable)' : ''}\n`;
-            },
-          );
-        }
-      },
-    );
-
-    return formattedData;
-  } catch ( err ) { logger.error( err ); return err; }
-};
-
 const notHoldableAvailability = async ( itemId ) => {
-  logger.debug( `not holdable availability for itemId ${itemId}...` );
+  logger.debug( `getting not holdable availability for itemId ${itemId}...` );
 
   try {
     const { data } = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/availability/${itemId}` );
-    logger.trace( 'availability response...\n' ); // ${JSON.stringify( data, null, 2 )}
+    logger.debug( '...got availability response' );
+    logger.trace( JSON.stringify( data, null, 2 ) );
     const entity = data.entities.bibs[itemId];
 
     // format data starting with header
@@ -49,7 +24,8 @@ const notHoldableAvailability = async ( itemId ) => {
         if ( item.status === 'AVAILABLE_ITEMS' ) {
           item.items.forEach(
             ( unit ) => {
-              logger.trace( 'unit...\n' ); // ${JSON.stringify( unit, null, 2 )}
+              logger.debug( 'unit...' );
+              logger.trace( JSON.stringify( unit, null, 2 ) );
               branchNames += unit.collection.includes( 'Not Holdable' ) ? ` - ${unit.branchName}\n` : '';
             },
           );
@@ -61,35 +37,74 @@ const notHoldableAvailability = async ( itemId ) => {
   } catch ( err ) { logger.error( err ); return err; }
 };
 
-const search = async ( keywords ) => {
-  logger.debug( `search results for keywords ${keywords}...` );
-
+const infoById = async ( itemId ) => {
   try {
-    const searchResults = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/bibs/search?searchType=smart&query=${keywords}` );
-    logger.trace( 'searchResults...\n' ); // ${JSON.stringify( bibs, null, 2 )}
-    const { bibs } = searchResults.data.entities;
-
-    // format data including first five bibs
-    let formattedData = '';
-    await asyncForEach( Object.entries( bibs ).slice( 0, 5 ),
-      async ( item ) => {
-        const availability = await availabilityDetails( item[1].itemId );
-
-        formattedData += `----${item[1].itemId}`;
-        formattedData += `----${item[1].availability.availableCopies}/${item[1].availability.totalCopies}`;
-        formattedData += `----${item[1].briefInfo.title}${item[1].briefInfo.subtitle ? ` - ${item[1].briefInfo.subtitle}` : ''} (${item[1].briefInfo.format})\n`;
-        formattedData += availability === '' ? '' : `${availability}\n`;
-      } );
-    return formattedData;
-  } catch ( err ) { return err; }
-};
-
-const slackOauth = async ( code ) => {
-  logger.debug( `slackOauth ${code}...` );
-  try {
-    const response = await axios.get( `https://slack.com/api/oauth.access?code=${code}&client_id=${process.env.SLACK_CLIENT_ID}&client_secret=${process.env.SLACK_CLIENT_SECRET}'` );
-    return response.body;
+    logger.debug( `getting info for itemId ${itemId}...` );
+    const { data } = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/availability/${itemId}` );
+    logger.debug( '...got info response' );
+    logger.trace( JSON.stringify( data, null, 2 ) );
+    const { id, availability, briefInfo } = data.entities.bibs[itemId];
+    const availabilities = data.items;
+    return { id, availability, availabilities, briefInfo };
   } catch ( err ) { logger.error( err ); return err; }
 };
 
-module.exports = { search, slackOauth, notHoldableAvailability };
+const search = async ( keywords ) => {
+  try {
+    logger.debug( `getting search results for keywords ${keywords}...` );
+    const searchResults = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/bibs/search?searchType=smart&query=${keywords}` );
+    logger.debug( '...got searchResults' );
+    const { bibs } = searchResults.data.entities;
+    logger.trace( JSON.stringify( bibs, null, 2 ) );
+    let formattedData = '';
+    // format data including first five bibs
+    await asyncForEach( Object.entries( bibs ).slice( 0, 5 ),
+      async ( bib ) => {
+        logger.debug( 'bib...' );
+        logger.trace( JSON.stringify( bib, null, 2 ) );
+        formattedData += `----${bib[1].id}`;
+        formattedData += `----${bib[1].availability.availableCopies}/${bib[1].availability.totalCopies}`;
+        formattedData += `----${bib[1].briefInfo.title}${bib[1].briefInfo.subtitle ? ` - ${bib[1].briefInfo.subtitle}` : ''} (${bib[1].briefInfo.format})\n`;
+        const availabilityResults = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/availability/${bib[1].id}` );
+        logger.debug( 'availability response...' );
+        const availabilities = availabilityResults.data.items;
+        logger.trace( JSON.stringify( availabilities, null, 2  ));
+        availabilities.forEach(
+          ( availability ) => {
+            if ( availability.status === 'AVAILABLE_ITEMS' ) {
+              availability.items.forEach(
+                ( unit ) => {
+                  logger.debug( 'unit...' );
+                  logger.trace( JSON.stringify( unit, null, 2 ) );
+                  formattedData += `${unit.branchName}${unit.collection === 'Best Sellers - Not Holdable' ? ' (Not Holdable)' : ''}\n`;
+                },
+              );
+            }
+          },
+        );
+      } );
+    return formattedData;
+  } catch ( err ) { logger.error( err ); return err; }
+};
+
+const searchByKeywords = async ( keywords ) => {
+  try {
+    logger.debug( `getting search results for keywords ${keywords}...` );
+    const searchResults = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/bibs/search?searchType=smart&query=${keywords}` );
+    logger.debug( '...got searchResults' );
+    const { bibs } = searchResults.data.entities;
+    logger.trace( JSON.stringify( bibs, null, 2 ) );
+    const searchArray = [];
+    await asyncForEach( Object.entries( bibs ).slice( 0, 3 ),
+      async ( bib ) => {
+        logger.debug( 'bib...' );
+        logger.trace( JSON.stringify( bib, null, 2 ) );
+        const { id } = bib[1];
+        const item = await infoById( id );
+        searchArray.push( item );
+      } );
+    return searchArray;
+  } catch ( err ) { logger.error( err ); return err; }
+};
+
+module.exports = { notHoldableAvailability, infoById, search, searchByKeywords };

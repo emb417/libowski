@@ -1,10 +1,14 @@
 {
   "name": "libowski",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "description": "Library Chat Bot",
   "author": "Eric B.",
   "license": "ISC",
   "main": "app/server.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emb417/libowski.git"
+  },
   "scripts": {
     "start": "nodemon --watch app app/server.js",
     "start-prod": "NODE_ENV=prod nodemon --watch app app/server.js",
