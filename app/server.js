@@ -33,6 +33,8 @@ const log4jscfg = {
 log4js.configure( log4jscfg );
 const logger = log4js.getLogger( 'Libowski' );
 logger.info( 'Call me "The Dude."' );
+logger.debug( 'Or his Dudeness' );
+logger.trace( 'Or duder, or El Duderino, if you\'re not into the whole brevity thing.' );
 const logDirectory = path.join( __dirname, '..', 'logs' );
 // eslint-disable-next-line no-unused-expressions
 fs.existsSync( logDirectory ) || fs.mkdirSync( logDirectory );
@@ -83,6 +85,12 @@ app.post( '/alert/activate', asyncHandler( async ( req, res ) => {
   res.send( { text, response_type } );
 } ) );
 
+app.get( '/alert/activate/:itemId', asyncHandler( async ( req, res ) => {
+  logger.info( 'activating alert...' );
+  const response = await capture.alertStatus( req.params.itemId, true );
+  res.send( response );
+} ) );
+
 app.post( '/alert/deactivate', asyncHandler( async ( req, res ) => {
   logger.info( 'deactivating alert...' );
   // text and response_type will destructure to slack keys
@@ -92,22 +100,17 @@ app.post( '/alert/deactivate', asyncHandler( async ( req, res ) => {
   res.send( { text, response_type } );
 } ) );
 
-app.get( '/alert/activate/:itemId', asyncHandler( async ( req, res ) => {
-  logger.info( 'activating alert...' );
-  const response = await capture.alertStatus( req.params.itemId, true );
-  res.send( response );
-} ) );
-
 app.get( '/alert/deactivate/:itemId', asyncHandler( async ( req, res ) => {
   logger.info( 'deactivating alert...' );
   const response = await capture.alertStatus( req.params.itemId, false );
   res.send( response );
 } ) );
 
-app.get( '/avail/:itemId', asyncHandler( async ( req, res ) => {
-  logger.info( 'querying avail...' );
-  const results = await query.avail( req.params.itemId );
-  res.send( `...find avail for ${req.params.itemId}\n${JSON.stringify( results, null, 2 )}\n` );
+app.post( '/find', asyncHandler( async ( req, res ) => {
+  res.send( 'The Dude abides...' );
+  logger.info( `searching for keywords ${req.body.text}...` );
+  const results = await fetch.search( req.body.text );
+  slack.replyMessage( results, req.body.response_url)
 } ) );
 
 app.get( '/find/:keywords', asyncHandler( async ( req, res ) => {
@@ -116,10 +119,11 @@ app.get( '/find/:keywords', asyncHandler( async ( req, res ) => {
   res.send( results );
 } ) );
 
-app.get( '/insert/:itemId', asyncHandler( async ( req, res ) => {
-  logger.info( `inserting avail for itemId ${req.params.itemId}...` );
-  const results = await capture.avail( req.params.itemId );
-  res.send( results );
+app.post( '/now', asyncHandler( async ( req, res ) => {
+  res.send( 'The Dude abides...' );
+  logger.info( `fetching availability for itemId ${req.body.text}...` );
+  const results = await fetch.notHoldableAvailability( req.body.text );
+  slack.replyMessage( results, req.body.response_url)
 } ) );
 
 app.get( '/now/:itemId', asyncHandler( async ( req, res ) => {
@@ -135,7 +139,7 @@ app.get( '/oauth', asyncHandler( async ( req, res ) => {
     logger.info( 'slack oauth no code...' );
   } else {
     logger.info( `slack oauth ${req.query.code}...` );
-    const response = await fetch.slackOauth( req.query.code );
+    const response = await slack.oauth( req.query.code );
     res.send( response );
   }
 } ) );

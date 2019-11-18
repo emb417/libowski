@@ -4,7 +4,7 @@
 const assert = require( 'assert' );
 const axios = require( 'axios' );
 
-describe( 'Server', function () {
+describe( 'API', function () {
   describe( 'index route', function () {
     let response;
     this.beforeAll( function ( done ) {
@@ -51,40 +51,12 @@ describe( 'Server', function () {
       assert.ok( response.data );
     } );
   } );
-  describe( 'insert route', function () {
-    let response;
-    this.beforeAll( async function () {
-      this.timeout( 5000 );
-      // S143C2099277 is the wargames bluray title
-      response = await axios.get( 'http://localhost:1337/insert/S143C2099277' );
-    } );
-    it( 'should respond', function () {
-      assert.equal( response.status, '200' );
-    } );
-    it( 'should have data', function () {
-      assert.ok( response.data );
-    } );
-  } );
-  describe( 'avail route', function () {
-    let response;
-    this.beforeAll( async function () {
-      this.timeout( 5000 );
-      // S143C2099277 is the wargames bluray title
-      response = await axios.get( 'http://localhost:1337/avail/S143C2099277' );
-    } );
-    it( 'should respond', function () {
-      assert.equal( response.status, '200' );
-    } );
-    it( 'should have data', function () {
-      assert.ok( response.data );
-    } );
-  } );
   describe( 'alert activate route', function () {
     let response;
     this.beforeAll( async function () {
       this.timeout( 5000 );
-      // ['S143C3658715', 'S143C3653511', 'S143C3646473', 'S143C3643101', 'S143C3640864'];
-      response = await axios.get( 'http://localhost:1337/alert/activate/S143C3658715' );
+      // activate wargames
+      response = await axios.get( 'http://localhost:1337/alert/activate/S143C2099277' );
     } );
     it( 'should respond', function () {
       assert.equal( response.status, '200' );
@@ -97,8 +69,8 @@ describe( 'Server', function () {
     let response;
     this.beforeAll( async function () {
       this.timeout( 5000 );
-      // ['S143C3658715', 'S143C3653511', 'S143C3646473', 'S143C3643101', 'S143C3640864'];
-      response = await axios.get( 'http://localhost:1337/alert/deactivate/S143C3658715' );
+      // deactivate wargames
+      response = await axios.get( 'http://localhost:1337/alert/deactivate/S143C2099277' );
     } );
     it( 'should respond', function () {
       assert.equal( response.status, '200' );
