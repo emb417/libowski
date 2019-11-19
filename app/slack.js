@@ -18,7 +18,7 @@ const sendAlert = ( message ) => {
   axios.post( process.env.SLACK_WEBHOOK_URL, { text: `${message}` } );
 };
 
-const sendItemInfo = ( items, response_url ) => {
+const sendItemInfo = ( items, responseUrl ) => {
   logger.debug( 'constructing sendItemInfo message...' );
   logger.trace( JSON.stringify( items, null, 2 ) );
   const body = { blocks: [] };
@@ -28,9 +28,9 @@ const sendItemInfo = ( items, response_url ) => {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `${index + 1}. *${item.briefInfo.title} (${item.id})*\n${item.briefInfo.subtitle}`
-        }
-      }
+          text: `${index + 1}. *${item.briefInfo.title} (${item.id})*\n${item.briefInfo.subtitle}`,
+        },
+      },
     );
     body.blocks.push( divider );
     body.blocks.push(
@@ -39,30 +39,30 @@ const sendItemInfo = ( items, response_url ) => {
         elements: [
           {
             type: 'mrkdwn',
-            text: item.briefInfo.description
-          }
-        ]
-      }
+            text: item.briefInfo.description,
+          },
+        ],
+      },
     );
     body.blocks.push(
       {
         type: 'section',
         fields: [
-            {
-              type: 'mrkdwn',
-              text: `*Year*\n${item.briefInfo.publicationDate}\n\n*Format*\n${item.briefInfo.format}`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*Availability*\n${item.availability.availableCopies} out of ${item.availability.totalCopies}\n\n*Held*\n${item.availability.heldCopies}`
-            }
+          {
+            type: 'mrkdwn',
+            text: `*Year*\n${item.briefInfo.publicationDate}\n\n*Format*\n${item.briefInfo.format}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: `*Availability*\n${item.availability.availableCopies} out of ${item.availability.totalCopies}\n\n*Held*\n${item.availability.heldCopies}`,
+          },
         ],
         accessory: {
           type: 'image',
           image_url: item.briefInfo.jacket.small,
-          alt_text: item.briefInfo.title
-        }
-      }
+          alt_text: item.briefInfo.title,
+        },
+      },
     );
     body.blocks.push( divider );
     const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls Library', 'Tigard Public Library', 'Tualatin Public Library'];
@@ -73,7 +73,7 @@ const sendItemInfo = ( items, response_url ) => {
           ( unit ) => {
             logger.debug( 'unit...' );
             logger.trace( JSON.stringify( unit, null, 2 ) );
-            if ( branchesOfInterest.includes(unit.branchName) ) {
+            if ( branchesOfInterest.includes( unit.branchName ) ) {
               branchNames.push( `${unit.branchName}${unit.collection.includes( 'Not Holdable' ) ? ' (Not Holdable)' : ''}` );
             }
           },
@@ -86,16 +86,16 @@ const sendItemInfo = ( items, response_url ) => {
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `*Available @ Branches of Interest*\n${branchNames.join( '\n' )}`
-          }
-        }
+            text: `*Available @ Branches of Interest*\n${branchNames.join( '\n' )}`,
+          },
+        },
       );
       body.blocks.push( divider );
     }
   } );
   logger.debug( 'posting sendItemInfo to slack...' );
   logger.trace( JSON.stringify( body ) );
-  try { axios.post( response_url, JSON.stringify( { ...body, response_type: 'in_channel' } ) ); } catch ( err ){ logger.error( err ); }
+  try { axios.post( responseUrl, JSON.stringify( { ...body, response_type: 'in_channel' } ) ); } catch ( err ) { logger.error( err ); }
 };
 
 module.exports = { oauth, sendAlert, sendItemInfo };

@@ -106,7 +106,7 @@ app.post( '/find', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `searching by keywords ${req.body.text}...` );
   const results = await fetch.searchByKeywords( req.body.text );
-  slack.sendItemInfo( results, req.body.response_url)
+  slack.sendItemInfo( results, req.body.response_url );
 } ) );
 
 app.get( '/find/:keywords', asyncHandler( async ( req, res ) => {
@@ -119,7 +119,7 @@ app.post( '/now', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `fetching info for itemId ${req.body.text}...` );
   const results = await fetch.infoById( req.body.text );
-  slack.sendItemInfo( [results], req.body.response_url)
+  slack.sendItemInfo( [results], req.body.response_url );
 } ) );
 
 app.get( '/now/:itemId', asyncHandler( async ( req, res ) => {
