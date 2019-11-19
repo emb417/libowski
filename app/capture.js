@@ -18,7 +18,8 @@ const alertStatus = async ( itemId, alertActive ) => {
       alertActive,
     }, ( err, docs ) => {
       if ( err ) { logger.error( err ); return err; }
-      logger.trace( `itemId inserted...\n\n${JSON.stringify( docs )}\n` );
+      logger.debug( 'itemId inserted...' );
+      logger.trace( JSON.stringify( docs ) );
       return { docs };
     } );
     return `...${alertActive ? 'activated' : 'deactivated'} ${itemId}\n`;
@@ -31,15 +32,19 @@ const avail = async ( itemId ) => {
   try {
     const { data } = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/availability/${itemId}` );
 
-    logger.trace( 'availability response...\n' ); // ${JSON.stringify( data, null, 2 )}
+    logger.debug( 'availability response...' );
+    logger.trace( JSON.stringify( data, null, 2 ) );
 
     const entity = data.entities.bibs[itemId];
+    const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls Library', 'Tigard Public Library', 'Tualatin Public Library'];
     const branchNames = [];
     data.items.forEach( ( item ) => {
       if ( item.status === 'AVAILABLE_ITEMS' ) {
         item.items.forEach( ( unit ) => {
-          logger.trace( 'unit...\n' ); // ${JSON.stringify( unit, null, 2 )}
-          if ( unit.collection.includes( 'Not Holdable' ) ) {
+          logger.debug( 'unit...' );
+          logger.trace( JSON.stringify( unit, null, 2 ) );
+          if ( branchesOfInterest.includes( unit.branchName )
+          && unit.collection.includes( 'Not Holdable' ) ) {
             branchNames.push( unit.branchName );
           }
         } );
@@ -59,7 +64,8 @@ const avail = async ( itemId ) => {
 
     }, ( err, docs ) => {
       if ( err ) { logger.error( err ); return err; }
-      logger.trace( `entity inserted...\n\n${JSON.stringify( docs )}\n` );
+      logger.debug( 'entity inserted...' );
+      logger.trace( JSON.stringify( docs ) );
       return { docs };
     } );
     return `...inserted ${entity.briefInfo.title}\n\n`;
