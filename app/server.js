@@ -7,6 +7,7 @@ const fs = require( 'fs' );
 const log4js = require( 'log4js' );
 const path = require( 'path' );
 
+const archive = require( './archive' );
 const capture = require( './capture' );
 const fetch = require( './fetch' );
 const query = require( './query' );
@@ -77,10 +78,13 @@ app.use( bodyParser.urlencoded( { extended: false } ) );
 
 // express routes
 app.post( '/alert/activate', asyncHandler( async ( req, res ) => {
-  logger.info( 'activating alert...' );
-  // text and response_type will destructure to slack keys
+  res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
+  logger.info( `activating alert for ${req.body.text}...` );
   const text = await capture.alertStatus( req.body.text, true );
-  res.send( { text, response_type: 'in_channel' } );
+  slack.sendMessage( text, req.body.response_url );
+  logger.info( `fetching info for itemId ${req.body.text}...` );
+  const results = await fetch.infoById( req.body.text );
+  slack.sendItemInfo( [results], req.body.response_url );
 } ) );
 
 app.get( '/alert/activate/:itemId', asyncHandler( async ( req, res ) => {
@@ -90,10 +94,9 @@ app.get( '/alert/activate/:itemId', asyncHandler( async ( req, res ) => {
 } ) );
 
 app.post( '/alert/deactivate', asyncHandler( async ( req, res ) => {
-  logger.info( 'deactivating alert...' );
-  // text and response_type will destructure to slack keys
-  const text = await capture.alertStatus( req.body.text, true );
-  res.send( { text, response_type: 'in_channel' } );
+  logger.info( `deactivating alert for ${req.body.text}...` );
+  const text = await archive.itemsById( req.body.text );
+  res.send( { text: `...deactivated${text}`, response_type: 'in_channel' } );
 } ) );
 
 app.get( '/alert/deactivate/:itemId', asyncHandler( async ( req, res ) => {
@@ -106,7 +109,7 @@ app.post( '/find', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `searching by keywords ${req.body.text}...` );
   const results = await fetch.searchByKeywords( req.body.text );
-  slack.sendItemInfo( results, req.body.response_url)
+  slack.sendItemInfo( results, req.body.response_url );
 } ) );
 
 app.get( '/find/:keywords', asyncHandler( async ( req, res ) => {
@@ -119,7 +122,7 @@ app.post( '/now', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `fetching info for itemId ${req.body.text}...` );
   const results = await fetch.infoById( req.body.text );
-  slack.sendItemInfo( [results], req.body.response_url)
+  slack.sendItemInfo( [results], req.body.response_url );
 } ) );
 
 app.get( '/now/:itemId', asyncHandler( async ( req, res ) => {

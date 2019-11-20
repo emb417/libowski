@@ -45,7 +45,12 @@ const infoById = async ( itemId ) => {
     logger.trace( JSON.stringify( data, null, 2 ) );
     const { id, availability, briefInfo } = data.entities.bibs[itemId];
     const availabilities = data.items;
-    return { id, availability, availabilities, briefInfo };
+    return {
+      id,
+      availability,
+      availabilities,
+      briefInfo,
+    };
   } catch ( err ) { logger.error( err ); return err; }
 };
 
@@ -68,7 +73,7 @@ const search = async ( keywords ) => {
         const availabilityResults = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/availability/${bib[1].id}` );
         logger.debug( 'availability response...' );
         const availabilities = availabilityResults.data.items;
-        logger.trace( JSON.stringify( availabilities, null, 2  ));
+        logger.trace( JSON.stringify( availabilities, null, 2 ) );
         availabilities.forEach(
           ( availability ) => {
             if ( availability.status === 'AVAILABLE_ITEMS' ) {
@@ -107,4 +112,6 @@ const searchByKeywords = async ( keywords ) => {
   } catch ( err ) { logger.error( err ); return err; }
 };
 
-module.exports = { notHoldableAvailability, infoById, search, searchByKeywords };
+module.exports = {
+  notHoldableAvailability, infoById, search, searchByKeywords,
+};
