@@ -77,10 +77,13 @@ app.use( bodyParser.urlencoded( { extended: false } ) );
 
 // express routes
 app.post( '/alert/activate', asyncHandler( async ( req, res ) => {
+  res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `activating alert for ${req.body.text}...` );
-  // text and response_type will destructure to slack keys
   const text = await capture.alertStatus( req.body.text, true );
-  res.send( { text, response_type: 'in_channel' } );
+  slack.sendMessage( text, req.body.response_url );
+  logger.info( `fetching info for itemId ${req.body.text}...` );
+  const results = await fetch.infoById( req.body.text );
+  slack.sendItemInfo( [results], req.body.response_url );
 } ) );
 
 app.get( '/alert/activate/:itemId', asyncHandler( async ( req, res ) => {

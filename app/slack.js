@@ -39,7 +39,7 @@ const sendItemInfo = ( items, responseUrl ) => {
         elements: [
           {
             type: 'mrkdwn',
-            text: item.briefInfo.description,
+            text: item.briefInfo.description || 'No Description',
           },
         ],
       },
@@ -98,4 +98,14 @@ const sendItemInfo = ( items, responseUrl ) => {
   try { axios.post( responseUrl, JSON.stringify( { ...body, response_type: 'in_channel' } ) ); } catch ( err ) { logger.error( err ); }
 };
 
-module.exports = { oauth, sendAlert, sendItemInfo };
+const sendMessage = ( message, responseUrl ) => {
+  logger.debug( 'posting message...' );
+  try { axios.post( responseUrl, JSON.stringify( { text: message, response_type: 'in_channel' } ) ); } catch ( err ) { logger.error( err ); }
+};
+
+module.exports = {
+  oauth,
+  sendAlert,
+  sendItemInfo,
+  sendMessage,
+};
