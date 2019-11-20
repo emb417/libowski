@@ -7,6 +7,7 @@ const fs = require( 'fs' );
 const log4js = require( 'log4js' );
 const path = require( 'path' );
 
+const archive = require( './archive' );
 const capture = require( './capture' );
 const fetch = require( './fetch' );
 const query = require( './query' );
@@ -94,9 +95,8 @@ app.get( '/alert/activate/:itemId', asyncHandler( async ( req, res ) => {
 
 app.post( '/alert/deactivate', asyncHandler( async ( req, res ) => {
   logger.info( `deactivating alert for ${req.body.text}...` );
-  // text and response_type will destructure to slack keys
-  const text = await capture.alertStatus( req.body.text, false );
-  res.send( { text, response_type: 'in_channel' } );
+  const text = await archive.itemsById( req.body.text );
+  res.send( { text: `...deactivated${text}`, response_type: 'in_channel' } );
 } ) );
 
 app.get( '/alert/deactivate/:itemId', asyncHandler( async ( req, res ) => {
