@@ -92,7 +92,7 @@ app.get( '/alert/activate/:itemId', asyncHandler( async ( req, res ) => {
 app.post( '/alert/deactivate', asyncHandler( async ( req, res ) => {
   logger.info( 'deactivating alert...' );
   // text and response_type will destructure to slack keys
-  const text = await capture.alertStatus( req.body.text, true );
+  const text = await capture.alertStatus( req.body.text, false );
   res.send( { text, response_type: 'in_channel' } );
 } ) );
 
