@@ -7,7 +7,7 @@ const Datastore = require( 'nedb' );
 
 const db = new Datastore( { filename: path.join( __dirname, '..', 'data', 'libowski.db' ), autoload: true } );
 
-const alertStatus = async ( itemId, alertActive ) => {
+const alertStatus = async ( itemId ) => {
   logger.debug( `activating alerts for itemId ${itemId}...` );
 
   try {
@@ -15,14 +15,13 @@ const alertStatus = async ( itemId, alertActive ) => {
       timestamp: Date.now(),
       eventType: 'alert',
       itemId,
-      alertActive,
     }, ( err, docs ) => {
       if ( err ) { logger.error( err ); return err; }
       logger.debug( 'itemId inserted...' );
       logger.trace( JSON.stringify( docs ) );
       return { docs };
     } );
-    return `...${alertActive ? 'activated' : 'deactivated'} ${itemId}\n`;
+    return `...activated ${itemId}\n`;
   } catch ( err ) { logger.error( err ); return err; }
 };
 
