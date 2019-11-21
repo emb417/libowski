@@ -28,7 +28,7 @@ const sendItemInfo = ( items, responseUrl ) => {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `${index + 1}. *${item.briefInfo.title} (${item.id})*\n${item.briefInfo.subtitle}`,
+          text: `*${index + 1}. ${item.briefInfo.title}* (${item.id})\n${item.briefInfo.subtitle}`,
         },
       },
     );
