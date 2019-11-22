@@ -33,7 +33,7 @@ const avail = async ( itemId ) => {
     && results[0].branchNames.length > 0
     && results[0].branchNames.length === results[1].branchNames.length
     && ( _.difference( results[0].branchNames, results[1].branchNames ) !== []
-    || _.difference( results[1].branchNames, results[0].branchNames ) !== [] ) ) {
+    && _.difference( results[1].branchNames, results[0].branchNames ) !== [] ) ) {
     return `${title} is @ ${_.difference( results[0].branchNames, results[1].branchNames )} and is GONE @ ${_.difference( results[1].branchNames, results[0].branchNames )}`;
   }
   if ( results.length === 1
