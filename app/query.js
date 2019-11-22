@@ -23,12 +23,19 @@ const avail = async ( itemId ) => {
   logger.debug( 'availMessage...' );
   const title = `${results[0].title}${results[0].subtitle
     ? ` - ${results[0].subtitle}` : ''} (${results[0].format})`;
-  if ( results.length > 1 && results[0].branchNames.length !== results[1].branchNames.length ) {
+  if ( results.length > 1
+    && results[0].branchNames.length !== results[1].branchNames.length ) {
     return results[0].branchNames.length > results[1].branchNames.length
       ? `${title} is @ ${_.difference( results[0].branchNames, results[1].branchNames )}`
       : `${title} is GONE @ ${_.difference( results[1].branchNames, results[0].branchNames )}`;
   }
-  if ( results.length === 1 && results[0].branchNames.length > 0 ) {
+  if ( results.length > 1
+    && results[0].branchNames.length > 0
+    && results[0].branchNames.length === results[1].branchNames.length ) {
+    return `${title} is @ ${_.difference( results[0].branchNames, results[1].branchNames )} and is GONE @ ${_.difference( results[1].branchNames, results[0].branchNames )}`;
+  }
+  if ( results.length === 1
+    && results[0].branchNames.length > 0 ) {
     return `${title} is @ ${results[0].branchNames}`;
   }
   return 'No Alert';
