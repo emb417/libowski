@@ -9,8 +9,17 @@ const itemsById = async ( itemId ) => {
     logger.debug( `archiving records for itemId ${itemId}...` );
     const db = Datastore.create( path.join( __dirname, '..', 'data', 'libowski.db' ) );
     const numRemoved = await db.remove( { itemId }, { multi: true } );
-    return `...archived ${numRemoved} records for ${itemId}\n`;
+    return `...archived ${numRemoved} records for ${itemId}`;
   } catch ( err ) { logger.error( err ); return err; }
 };
 
-module.exports = { itemsById };
+const itemsNotInList = async ( list ) => {
+  try {
+    logger.debug( `archiving records for items not it ${list}...` );
+    const db = Datastore.create( path.join( __dirname, '..', 'data', 'libowski.db' ) );
+    const numRemoved = await db.remove( { itemId: { $nin: list } }, { multi: true } );
+    return `...archived ${numRemoved} records`;
+  } catch ( err ) { logger.error( err ); return err; }
+};
+
+module.exports = { itemsById, itemsNotInList };

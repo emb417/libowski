@@ -5,22 +5,14 @@ const _ = require( 'lodash' );
 
 const logger = log4js.getLogger( 'query' );
 
-const alerts = async () => {
-  logger.debug( 'get all alerts...' );
-  const db = Datastore.create( path.join( __dirname, '..', 'data', 'libowski.db' ) );
-  const results = await db.find( { eventType: 'alert' } );
-  logger.trace( `...results ${JSON.stringify( results )}` );
-  return results.map( ( item ) => item.itemId );
-};
-
 const avail = async ( itemId ) => {
   logger.debug( `avail for ${itemId}...` );
   const db = Datastore.create( path.join( __dirname, '..', 'data', 'libowski.db' ) );
   const results = await db.find( { itemId, eventType: 'avail' } ).sort( {
     timestamp: -1,
   } ).limit( 2 );
-  logger.trace( `avail results...\n${JSON.stringify( results, null, 2 )}` );
-  logger.debug( 'availMessage...' );
+  logger.debug( 'avail results...' );
+  logger.trace( JSON.stringify( results, null, 2 ) );
   const title = `${results[0].title}${results[0].subtitle
     ? ` - ${results[0].subtitle}` : ''} (${results[0].format})`;
   if ( results.length > 1
@@ -43,4 +35,4 @@ const avail = async ( itemId ) => {
   return 'No Alert';
 };
 
-module.exports = { avail, alerts };
+module.exports = { avail };

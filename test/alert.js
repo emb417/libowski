@@ -30,7 +30,7 @@ describe( 'Alert', function () {
   } );
   it.skip( 'should capture avail', async function () {
     const captureAvail = await capture.avail( 'S143C2099277' );
-    assert.equal( captureAvail, '...inserted WarGames\n\n' );
+    assert.equal( captureAvail, '...inserted WarGames' );
   } );
   it.skip( 'should not send', async function () {
     const alert = await query.avail( 'S143C2099277' );
