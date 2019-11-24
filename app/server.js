@@ -47,23 +47,25 @@ const dataDirectory = path.join( __dirname, '..', 'data' );
 fs.existsSync( dataDirectory ) || fs.mkdirSync( dataDirectory );
 logger.info( 'data directory in place...' );
 
-const interval = process.env.NODE_ENV ? '0 */15 8-20 * * *' : '*/15 * * * * *';
+const interval = process.env.NODE_ENV ? '0 */15 8-20 * * *' : '*/30 * * * * *';
 logger.info( `getting non holdable avail via cron ${interval}` );
 // get non holdable avail
 const job = new CronJob( interval, async () => {
-  const alertIds = await query.alerts();
-  logger.debug( `...alert ids ${alertIds}` );
-  await utils.asyncForEach( alertIds, async ( alertId ) => {
-    logger.info( `capturing alert id ${alertId}...` );
-    await capture.avail( alertId );
+  const itemIds = await fetch.accountHolds();
+  logger.debug( `...alert ids ${itemIds}` );
+  await utils.asyncForEach( itemIds, async ( itemId ) => {
+    logger.info( `capturing avail for alert id ${itemId}...` );
+    await capture.avail( itemId );
     logger.info( 'query avail...' );
-    const availMessage = await query.avail( alertId );
+    const availMessage = await query.avail( itemId );
     if ( availMessage !== 'No Alert' ) {
       logger.info( 'alert...' );
-      slack.sendAlert( `${alertId} - ${availMessage}` );
-      smtp.sendMessage( `${alertId} - ${availMessage}` );
+      slack.sendAlert( `${itemId} - ${availMessage}` );
+      smtp.sendMessage( `${itemId} - ${availMessage}` );
     }
   } );
+  const archivedResponse = await archive.itemsNotInList( itemIds );
+  logger.info( archivedResponse );
 } );
 
 job.start();
@@ -77,34 +79,6 @@ app.use( log4js.connectLogger( logger ) );
 app.use( bodyParser.urlencoded( { extended: false } ) );
 
 // express routes
-app.post( '/alert/activate', asyncHandler( async ( req, res ) => {
-  res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
-  logger.info( `activating alert for ${req.body.text}...` );
-  const text = await capture.alertStatus( req.body.text, true );
-  slack.sendMessage( text, req.body.response_url );
-  logger.info( `fetching info for itemId ${req.body.text}...` );
-  const results = await fetch.infoById( req.body.text );
-  slack.sendItemInfo( [results], req.body.response_url );
-} ) );
-
-app.get( '/alert/activate/:itemId', asyncHandler( async ( req, res ) => {
-  logger.info( 'activating alert...' );
-  const response = await capture.alertStatus( req.params.itemId, true );
-  res.send( response );
-} ) );
-
-app.post( '/alert/deactivate', asyncHandler( async ( req, res ) => {
-  logger.info( `deactivating alert for ${req.body.text}...` );
-  const text = await archive.itemsById( req.body.text );
-  res.send( { text: `...deactivated${text}`, response_type: 'in_channel' } );
-} ) );
-
-app.get( '/alert/deactivate/:itemId', asyncHandler( async ( req, res ) => {
-  logger.info( 'deactivating alert...' );
-  const response = await capture.alertStatus( req.params.itemId, false );
-  res.send( response );
-} ) );
-
 app.post( '/find', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `searching by keywords ${req.body.text}...` );
@@ -112,23 +86,11 @@ app.post( '/find', asyncHandler( async ( req, res ) => {
   slack.sendItemInfo( results, req.body.response_url );
 } ) );
 
-app.get( '/find/:keywords', asyncHandler( async ( req, res ) => {
-  logger.info( `searching by keywords ${req.params.keywords}...` );
-  const results = await fetch.search( req.params.keywords );
-  res.send( results );
-} ) );
-
 app.post( '/now', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `fetching info for itemId ${req.body.text}...` );
   const results = await fetch.infoById( req.body.text );
   slack.sendItemInfo( [results], req.body.response_url );
-} ) );
-
-app.get( '/now/:itemId', asyncHandler( async ( req, res ) => {
-  logger.info( `fetching availability for itemId ${req.params.itemId}...` );
-  const results = await fetch.notHoldableAvailability( req.params.itemId );
-  res.send( results );
 } ) );
 
 app.get( '/oauth', asyncHandler( async ( req, res ) => {

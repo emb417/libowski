@@ -12,9 +12,9 @@ CLIENT_SECRET=
 REFRESH_TOKEN=
 SCOPE=https://mail.google.com/
 REDIRECT_URL=https://developers.google.com/oauthplayground
-USER_EMAIL=
-USER_NAME=
-SMTP_ADDRESSES=
+USER_EMAIL=<sender email>
+USER_NAME=<sender name>
+SMTP_ADDRESSES=<receiver emails comma separated>
 ```
 2. dotenv for slack
 ```
@@ -25,11 +25,16 @@ SLACK_CLIENT_ID=
 SLACK_CLIENT_SECRET=
 SLACK_SIGNING_SECRET=
 ```
-3. Start app with alerts scheduled every 15 seconds
+3. dotenv for library creds
+```
+LIBRARY_NAME=<barcode>
+LIBRARY_PIN=<pin>
+```
+4. Start app with alerts scheduled every 30 seconds
 ```
 npm start
 ```
-4. OR start app in prod mode with alerts every 15 minutes
+5. OR start app in prod mode with alerts every 15 minutes
 ```
 npm run start-prod
 ```
@@ -48,7 +53,9 @@ npm run start-prod
 ### query
 * nedb finds for alerts
 ### capture
-* nedb inserts for alerts and availability changes
+* nedb inserts for availability changes
+### archive
+* nedb removes for old items not in holds list
 ### slack
 * formatting blocks
 ### smtp

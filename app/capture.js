@@ -21,7 +21,7 @@ const alertStatus = async ( itemId ) => {
       logger.trace( JSON.stringify( docs ) );
       return { docs };
     } );
-    return `...activated ${itemId}\n`;
+    return `...activated ${itemId}`;
   } catch ( err ) { logger.error( err ); return err; }
 };
 
@@ -67,7 +67,7 @@ const avail = async ( itemId ) => {
       logger.trace( JSON.stringify( docs ) );
       return { docs };
     } );
-    return `...inserted ${entity.briefInfo.title}\n\n`;
+    return `...inserted ${entity.briefInfo.title}`;
   } catch ( err ) { logger.error( err ); return err; }
 };
 
