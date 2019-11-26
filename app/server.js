@@ -51,7 +51,7 @@ const interval = process.env.NODE_ENV ? '0 */15 8-20 * * *' : '*/30 * * * * *';
 logger.info( `getting non holdable avail via cron ${interval}` );
 // get non holdable avail
 const job = new CronJob( interval, async () => {
-  const itemIds = await fetch.accountHolds();
+  const itemIds = await fetch.accountHolds( {} );
   logger.debug( `...alert ids ${itemIds}` );
   await utils.asyncForEach( itemIds, async ( itemId ) => {
     logger.info( `capturing avail for alert id ${itemId}...` );
@@ -83,6 +83,13 @@ app.post( '/find', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `searching by keywords ${req.body.text}...` );
   const results = await fetch.searchByKeywords( req.body.text );
+  slack.sendItemInfo( results, req.body.response_url );
+} ) );
+
+app.post( '/hold', asyncHandler( async ( req, res ) => {
+  res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
+  logger.info( `requesting hold for itemId ${req.body.text}...` );
+  const results = await fetch.addHold( req.body.text );
   slack.sendItemInfo( results, req.body.response_url );
 } ) );
 

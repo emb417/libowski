@@ -4,12 +4,13 @@ const { asyncForEach } = require( './utils' );
 
 const logger = log4js.getLogger( 'fetch' );
 
-const accountTokens = async ( libraryName, libraryPin ) => {
+const accountTokens = async ( { libraryName, libraryPin } ) => {
   logger.debug( 'getting account tokens...' );
   const loginResponse = await axios( {
     method: 'post',
-    url: 'https://wccls.bibliocommons.com/user/login?destination=%2Fuser_dashboard',
+    url: 'https://wccls.bibliocommons.com/user/login',
     params: {
+      destination: '%2Fuser_dashboard',
       name: libraryName || process.env.LIBRARY_NAME,
       user_pin: libraryPin || process.env.LIBRARY_PIN,
     },
@@ -20,23 +21,33 @@ const accountTokens = async ( libraryName, libraryPin ) => {
     withCredentials: true,
   } );
   const loginCookies = `${loginResponse.headers['set-cookie']}`;
+  logger.debug( 'login cookies...' );
+  logger.trace( loginCookies );
   const sessionIdStart = loginCookies.indexOf( 'session_id=' ) + 11;
   const sessionIdLength = 47;
   const sessionId = loginCookies
     .substring( sessionIdStart, sessionIdStart + sessionIdLength );
-  logger.trace( `...got session id ${sessionId}` );
   const accountId = parseInt( sessionId.split( '-' ).pop(), 10 ) + 1;
+  logger.trace( `...got session id ${sessionId} and account id ${accountId}` );
   const accessTokenStart = loginCookies.indexOf( 'bc_access_token=' ) + 16;
   const accessTokenLength = 36;
   const accessToken = loginCookies
     .substring( accessTokenStart, accessTokenStart + accessTokenLength );
   logger.trace( `...got access token ${accessToken}` );
-  return { accessToken, accountId, sessionId };
+  return {
+    accessToken,
+    accountId,
+    sessionId,
+  };
 };
 
-const accountHolds = async ( libraryName, libraryPin ) => {
+const accountHolds = async ( { libraryName, libraryPin } ) => {
   logger.debug( 'getting account holds...' );
-  const { accessToken, accountId, sessionId } = await accountTokens( libraryName, libraryPin );
+  const {
+    accessToken,
+    accountId,
+    sessionId,
+  } = await accountTokens( { libraryName, libraryPin } );
 
   const holdsResponse = await axios( {
     method: 'get',
@@ -65,6 +76,49 @@ const accountHolds = async ( libraryName, libraryPin ) => {
       }
     } );
   return holdArray;
+};
+
+const addHold = async ( {
+  branchId,
+  itemId,
+  libraryName,
+  libraryPin,
+} ) => {
+  try {
+    logger.debug( `adding hold for itemId ${itemId}...` );
+    const {
+      accessToken,
+      accountId,
+      sessionId,
+    } = await accountTokens( { libraryName, libraryPin } );
+    const response = await axios( {
+      url: 'https://gateway.bibliocommons.com/v2/libraries/wccls/holds',
+      method: 'post',
+      params: {
+        locale: 'en-US',
+      },
+      data: {
+        metadataId: itemId,
+        materialType: 'PHYSICAL',
+        accountId,
+        enableSingleClickHolds: false,
+        materialParams: {
+          branchId: `${branchId || process.env.HOLD_BRANCH_DEFAULT}`,
+          expiryDate: null,
+          errorMessageLocale: 'en-US',
+        },
+      },
+      headers: {
+        Cookie: `session_id=${sessionId}; bc_access_token=${accessToken};`,
+      },
+    } );
+    logger.debug( '...got response from hold request' );
+    logger.trace( response );
+    const holdItem = Object.entries( response.data.entities.holds )[0];
+    logger.debug( '...parsed hold entries' );
+    logger.trace( holdItem[1] );
+    return holdItem[1];
+  } catch ( err ) { logger.error( err ); return err.response.data.error; }
 };
 
 const infoById = async ( itemId ) => {
@@ -107,6 +161,7 @@ const searchByKeywords = async ( keywords ) => {
 module.exports = {
   accountHolds,
   accountTokens,
+  addHold,
   infoById,
   searchByKeywords,
 };
