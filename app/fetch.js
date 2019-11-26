@@ -117,11 +117,18 @@ const addHold = async ( {
     const holdItem = Object.entries( response.data.entities.holds )[0];
     logger.debug( '...parsed hold entries' );
     logger.trace( holdItem[1] );
-    return holdItem[1];
+    const {
+      metadataId,
+      holdsId,
+      bibTitle,
+      holdsPosition,
+      pickupLocation,
+    } = holdItem[1];
+    return `hold ${holdsId} at position ${holdsPosition} was placed for ${bibTitle} (${metadataId}) to be picked up at ${pickupLocation.name}`;
   } catch ( err ) {
     logger.error( JSON.stringify( err.response.data.error ) );
     logger.trace( err );
-    return err.response.data.error;
+    return err.response.data.error.message;
   }
 };
 

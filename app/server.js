@@ -90,7 +90,7 @@ app.post( '/hold', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `requesting hold for itemId ${req.body.text}...` );
   const results = await fetch.addHold( { itemId: req.body.text } );
-  slack.sendItemInfo( results, req.body.response_url );
+  slack.sendAlert( `Hey, look, man...${results}`, req.body.response_url );
 } ) );
 
 app.post( '/now', asyncHandler( async ( req, res ) => {
