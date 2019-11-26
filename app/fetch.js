@@ -118,7 +118,11 @@ const addHold = async ( {
     logger.debug( '...parsed hold entries' );
     logger.trace( holdItem[1] );
     return holdItem[1];
-  } catch ( err ) { logger.error( err ); return err.response.data.error; }
+  } catch ( err ) {
+    logger.error( JSON.stringify( err.response.data.error ) );
+    logger.trace( err );
+    return err.response.data.error;
+  }
 };
 
 const infoById = async ( itemId ) => {
