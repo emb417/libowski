@@ -86,18 +86,21 @@ app.post( '/find', asyncHandler( async ( req, res ) => {
   slack.sendItemInfo( results, req.body.response_url );
 } ) );
 
-app.post( '/hold', asyncHandler( async ( req, res ) => {
+app.post( '/interact', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
-  logger.info( `requesting hold for itemId ${req.body.text}...` );
-  const results = await fetch.addHold( { itemId: req.body.text } );
-  slack.sendAlert( `Hey, look, man...${results}`, req.body.response_url );
+  logger.info( 'parsing payload...' );
+  logger.trace( req.body.payload );
+  // eslint-disable-next-line camelcase
+  const { actions, response_url } = JSON.parse( req.body.payload );
+  const results = await fetch.addHold( { itemId: actions[0].value } );
+  slack.sendAlert( `Hey, look, man...${results}`, response_url );
 } ) );
 
 app.post( '/now', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `fetching info for itemId ${req.body.text}...` );
-  const results = await fetch.infoById( req.body.text );
-  slack.sendItemInfo( [results], req.body.response_url );
+  const result = await fetch.infoById( req.body.text );
+  slack.sendItemInfo( [result], req.body.response_url );
 } ) );
 
 app.get( '/oauth', asyncHandler( async ( req, res ) => {

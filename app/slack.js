@@ -1,5 +1,6 @@
 const axios = require( 'axios' );
 const log4js = require( 'log4js' );
+const fetch = require( './fetch' );
 
 const logger = log4js.getLogger( 'slack' );
 
@@ -18,17 +19,39 @@ const sendAlert = ( message ) => {
   axios.post( process.env.SLACK_WEBHOOK_URL, { text: `${message}` } );
 };
 
-const sendItemInfo = ( items, responseUrl ) => {
+const sendItemInfo = async ( items, responseUrl ) => {
   logger.debug( 'constructing sendItemInfo message...' );
   logger.trace( JSON.stringify( items, null, 2 ) );
+  logger.debug( 'fetching account holds...' );
+  const holdIds = await fetch.accountHolds( {} );
+  logger.debug( `...got account holds ${holdIds}` );
+  logger.trace( holdIds );
   const body = { blocks: [] };
   items.forEach( ( item, index ) => {
+    let buttonText = 'Request Hold';
+    let buttonStyle = 'primary';
+    let buttonActionId = 'request-hold';
+    if ( holdIds.includes( item.id ) ) {
+      buttonText = 'Cancel Hold';
+      buttonStyle = 'danger';
+      buttonActionId = 'cancel-hold';
+    }
     body.blocks.push(
       {
         type: 'section',
         text: {
           type: 'mrkdwn',
           text: `*${index + 1}. ${item.briefInfo.title}* (${item.id})\n${item.briefInfo.subtitle}`,
+        },
+        accessory: {
+          type: 'button',
+          text: {
+            type: 'plain_text',
+            text: buttonText,
+          },
+          style: buttonStyle,
+          value: item.id,
+          action_id: buttonActionId,
         },
       },
     );
@@ -95,7 +118,13 @@ const sendItemInfo = ( items, responseUrl ) => {
   } );
   logger.debug( 'posting sendItemInfo to slack...' );
   logger.trace( JSON.stringify( body ) );
-  try { axios.post( responseUrl, JSON.stringify( { ...body, response_type: 'in_channel' } ) ); } catch ( err ) { logger.error( err ); }
+  try {
+    return await axios.post( responseUrl, JSON.stringify( { ...body, response_type: 'in_channel' } ) );
+  } catch ( err ) {
+    logger.error( JSON.stringify( err.response.data ) );
+    logger.trace( err );
+    return err.response.data;
+  }
 };
 
 const sendMessage = ( message, responseUrl ) => {
