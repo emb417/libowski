@@ -83,7 +83,11 @@ app.post( '/find', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `searching by keywords ${req.body.text}...` );
   const results = await fetch.searchByKeywords( req.body.text );
-  slack.sendItemInfo( results, req.body.response_url );
+  if ( results.length === 0 ) {
+    slack.sendAlert( 'This aggression will not stand.  Try again.', req.body.response_url );
+  } else {
+    slack.sendItemInfo( results, req.body.response_url );
+  }
 } ) );
 
 app.post( '/interact', asyncHandler( async ( req, res ) => {

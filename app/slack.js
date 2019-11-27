@@ -82,7 +82,7 @@ const sendItemInfo = async ( items, responseUrl ) => {
         ],
         accessory: {
           type: 'image',
-          image_url: item.briefInfo.jacket.small,
+          image_url: item.briefInfo.jacket.small || '//cor-cdn-static.bibliocommons.com/assets/default_covers/icon-movie-alldiscs-b7d1a6916a9a5872d5f910814880e6c0.png',
           alt_text: item.briefInfo.title,
         },
       },

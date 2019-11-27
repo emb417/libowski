@@ -154,8 +154,11 @@ const searchByKeywords = async ( keywords ) => {
     logger.debug( `getting search results for keywords ${keywords}...` );
     const searchResults = await axios.get( `https://gateway.bibliocommons.com/v2/libraries/wccls/bibs/search?searchType=smart&query=${keywords}` );
     logger.debug( '...got searchResults' );
-    const { bibs } = searchResults.data.entities;
-    logger.trace( JSON.stringify( bibs, null, 2 ) );
+    let bibs = [];
+    if ( searchResults.data.entities ) {
+      bibs = searchResults.data.entities.bibs;
+      logger.trace( JSON.stringify( bibs, null, 2 ) );
+    }
     const searchArray = [];
     await asyncForEach( Object.entries( bibs ).slice( 0, 3 ),
       async ( bib ) => {
