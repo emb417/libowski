@@ -38,6 +38,13 @@ const sendItemInfo = async ( items, responseUrl ) => {
     }
     body.blocks.push(
       {
+        type: 'image',
+        image_url: item.briefInfo.jacket.large || '//cor-cdn-static.bibliocommons.com/assets/default_covers/icon-movie-alldiscs-b7d1a6916a9a5872d5f910814880e6c0.png',
+        alt_text: item.briefInfo.title,
+      },
+    );
+    body.blocks.push(
+      {
         type: 'section',
         text: {
           type: 'mrkdwn',
@@ -80,11 +87,6 @@ const sendItemInfo = async ( items, responseUrl ) => {
             text: `*Availability*\n${item.availability.availableCopies} out of ${item.availability.totalCopies}\n\n*Held*\n${item.availability.heldCopies}`,
           },
         ],
-        accessory: {
-          type: 'image',
-          image_url: item.briefInfo.jacket.small || '//cor-cdn-static.bibliocommons.com/assets/default_covers/icon-movie-alldiscs-b7d1a6916a9a5872d5f910814880e6c0.png',
-          alt_text: item.briefInfo.title,
-        },
       },
     );
     body.blocks.push( divider );
