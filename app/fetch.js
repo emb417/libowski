@@ -173,6 +173,35 @@ const cancelHold = async ( {
   }
 };
 
+const hoursForAll = async () => {
+  try {
+    logger.debug( 'getting hours for all...' );
+    const { data } = await axios.get( 'https://gateway.bibliocommons.com/v2/libraries/wccls/locations?limit=20' );
+    logger.debug( '...got locations response' );
+    logger.trace( JSON.stringify( data, null, 2 ) );
+    const { locations } = data.entities;
+    const hoursArray = [];
+    Object.entries( locations ).forEach( ( location ) => {
+      logger.debug( 'location...' );
+      logger.trace( JSON.stringify( location, null, 2 ) );
+      const {
+        id,
+        name,
+        customUrl,
+        hours,
+      } = location[1];
+      hoursArray.push( {
+        id,
+        name,
+        customUrl,
+        hours,
+      } );
+    } );
+
+    return hoursArray;
+  } catch ( err ) { logger.error( err ); return err; }
+};
+
 const infoById = async ( itemId ) => {
   try {
     logger.debug( `getting info for itemId ${itemId}...` );
@@ -218,6 +247,7 @@ module.exports = {
   accountTokens,
   addHold,
   cancelHold,
+  hoursForAll,
   infoById,
   searchByKeywords,
 };
