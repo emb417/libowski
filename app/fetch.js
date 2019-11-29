@@ -65,14 +65,15 @@ const accountHolds = async ( { libraryName, libraryPin } ) => {
   } );
   logger.trace( `...got account holds ${holdsResponse.data}` );
   const { holds } = holdsResponse.data.entities;
-  const holdArray = [];
+  const holdArray = { holdsIds: [], holdItemIds: [] };
   await asyncForEach( Object.entries( holds ),
     async ( hold ) => {
       logger.debug( 'hold...' );
       logger.trace( JSON.stringify( hold, null, 2 ) );
       const [, item] = hold;
       if ( item.status === 'NOT_YET_AVAILABLE' ) {
-        holdArray.push( item.metadataId );
+        holdArray.holdItemIds.push( item.metadataId );
+        holdArray.holdsIds.push( item.holdsId );
       }
     } );
   return holdArray;
@@ -132,6 +133,46 @@ const addHold = async ( {
   }
 };
 
+const cancelHold = async ( {
+  itemId,
+  holdsId,
+  libraryName,
+  libraryPin,
+} ) => {
+  try {
+    logger.debug( `cancelling hold for id ${holdsId}...` );
+    const {
+      accessToken,
+      accountId,
+      sessionId,
+    } = await accountTokens( { libraryName, libraryPin } );
+    const response = await axios( {
+      url: 'https://gateway.bibliocommons.com/v2/libraries/wccls/holds',
+      method: 'delete',
+      params: {
+        locale: 'en-US',
+      },
+      data: {
+        accountId,
+        holdIds: [holdsId],
+        metadataIds: [itemId],
+      },
+      headers: {
+        Cookie: `session_id=${sessionId}; bc_access_token=${accessToken};`,
+      },
+    } );
+    logger.debug( '...got response from cancel request' );
+    logger.trace( response );
+    logger.trace( response.data.analytics.events );
+    const { failures } = response;
+    return ( typeof failures === 'undefined' ? 'cancel processed, or did it?' : JSON.stringify( failures ) );
+  } catch ( err ) {
+    logger.error( JSON.stringify( err.response.data.error ) );
+    logger.trace( err );
+    return err.response.data.error.message;
+  }
+};
+
 const infoById = async ( itemId ) => {
   try {
     logger.debug( `getting info for itemId ${itemId}...` );
@@ -176,6 +217,7 @@ module.exports = {
   accountHolds,
   accountTokens,
   addHold,
+  cancelHold,
   infoById,
   searchByKeywords,
 };

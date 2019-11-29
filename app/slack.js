@@ -23,18 +23,22 @@ const sendItemInfo = async ( items, responseUrl ) => {
   logger.debug( 'constructing sendItemInfo message...' );
   logger.trace( JSON.stringify( items, null, 2 ) );
   logger.debug( 'fetching account holds...' );
-  const holdIds = await fetch.accountHolds( {} );
-  logger.debug( `...got account holds ${holdIds}` );
-  logger.trace( holdIds );
+  const { holdItemIds, holdsIds } = await fetch.accountHolds( {} );
+  logger.debug( `...got account holds ${holdItemIds}` );
+  logger.trace( holdItemIds );
   const body = { blocks: [] };
   items.forEach( ( item, index ) => {
-    let buttonText = 'Request Hold';
-    let buttonStyle = 'primary';
-    let buttonActionId = 'request-hold';
-    if ( holdIds.includes( item.id ) ) {
-      buttonText = 'Cancel Hold';
-      buttonStyle = 'danger';
-      buttonActionId = 'cancel-hold';
+    const button = {
+      text: 'Request Hold',
+      style: 'primary',
+      action_id: 'request-hold',
+      value: item.id,
+    };
+    if ( holdItemIds.includes( item.id ) ) {
+      button.text = 'Cancel Hold';
+      button.style = 'danger';
+      button.action_id = 'cancel-hold';
+      button.value = `${holdsIds[holdItemIds.indexOf( item.id )]} ${item.id}`;
     }
     body.blocks.push(
       {
@@ -54,11 +58,11 @@ const sendItemInfo = async ( items, responseUrl ) => {
           type: 'button',
           text: {
             type: 'plain_text',
-            text: buttonText,
+            text: button.text,
           },
-          style: buttonStyle,
-          value: item.id,
-          action_id: buttonActionId,
+          style: button.style,
+          value: button.value,
+          action_id: button.action_id,
         },
       },
     );
