@@ -41,6 +41,47 @@ const accountTokens = async ( { libraryName, libraryPin } ) => {
   };
 };
 
+const accountCheckouts = async ( { libraryName, libraryPin } ) => {
+  logger.debug( 'getting account checkouts...' );
+  const {
+    accessToken,
+    accountId,
+    sessionId,
+  } = await accountTokens( { libraryName, libraryPin } );
+
+  const checkoutsResponse = await axios( {
+    method: 'get',
+    url: 'https://gateway.bibliocommons.com/v2/libraries/wccls/checkouts',
+    params: {
+      accountId,
+      size: 10,
+      status: 'OUT',
+      page: 1,
+      sort: 'status',
+      locale: 'en-US',
+    },
+    headers: {
+      Cookie: `session_id=${sessionId}; bc_access_token=${accessToken};`,
+    },
+  } );
+  logger.trace( `...got account checkouts ${checkoutsResponse.data}` );
+  const { checkouts } = checkoutsResponse.data.entities;
+  const checkoutsArray = [];
+  Object.entries( checkouts ).forEach( ( checkout ) => {
+    logger.debug( 'checkout...' );
+    logger.trace( JSON.stringify( checkout, null, 2 ) );
+    const [, item] = checkout;
+    checkoutsArray.push( {
+      bibTitle: item.bibTitle,
+      actions: item.actions,
+      checkoutId: item.checkoutId,
+      itemId: item.metadataId,
+      dueDate: item.dueDate,
+    } );
+  } );
+  return checkoutsArray;
+};
+
 const accountHolds = async ( { libraryName, libraryPin } ) => {
   logger.debug( 'getting account holds...' );
   const {
@@ -243,6 +284,7 @@ const searchByKeywords = async ( keywords ) => {
 };
 
 module.exports = {
+  accountCheckouts,
   accountHolds,
   accountTokens,
   addHold,

@@ -79,6 +79,13 @@ app.use( log4js.connectLogger( logger ) );
 app.use( bodyParser.urlencoded( { extended: false } ) );
 
 // express routes
+app.post( '/checkouts', asyncHandler( async ( req, res ) => {
+  res.send( { text: 'The Dude abides...', response_type: 'ephemeral' } );
+  logger.info( 'getting checkouts...' );
+  const results = await fetch.accountCheckouts( {} );
+  slack.sendCheckoutsInfo( results, req.body.response_url );
+} ) );
+
 app.post( '/find', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `searching by keywords ${req.body.text}...` );

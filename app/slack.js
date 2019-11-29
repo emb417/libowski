@@ -20,6 +20,56 @@ const sendAlert = ( message ) => {
   axios.post( process.env.SLACK_WEBHOOK_URL, { text: `${message}` } );
 };
 
+const sendCheckoutsInfo = async ( checkouts, responseUrl ) => {
+  logger.debug( 'constructing sendCheckoutsInfo message...' );
+  logger.trace( JSON.stringify( checkouts, null, 2 ) );
+  const body = { blocks: [] };
+  body.blocks.push(
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: '*Checkouts*',
+      },
+    },
+  );
+  checkouts.forEach( ( checkout ) => {
+    body.blocks.push(
+      {
+        type: 'section',
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: `*Title*\n${checkout.bibTitle}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: `*Due Date*\n${checkout.dueDate}`,
+          },
+        ],
+        accessory: {
+          type: 'button',
+          text: {
+            type: 'plain_text',
+            text: 'Renew',
+          },
+          style: 'primary',
+          value: 'item id',
+          action_id: 'renew',
+        },
+      },
+    );
+    body.blocks.push( divider );
+  } );
+  try {
+    return await axios.post( responseUrl, JSON.stringify( { ...body, response_type: 'ephemeral' } ) );
+  } catch ( err ) {
+    logger.error( JSON.stringify( err.response.data ) );
+    logger.trace( err );
+    return err.response.data;
+  }
+};
+
 const sendHoursInfo = async ( hoursForAll, responseUrl ) => {
   logger.debug( 'constructing sendHoursInfo message...' );
   logger.trace( JSON.stringify( hoursForAll, null, 2 ) );
@@ -189,6 +239,7 @@ const sendMessage = ( message, responseUrl ) => {
 module.exports = {
   oauth,
   sendAlert,
+  sendCheckoutsInfo,
   sendHoursInfo,
   sendItemInfo,
   sendMessage,
