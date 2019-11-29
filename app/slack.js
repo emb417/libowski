@@ -1,5 +1,6 @@
 const axios = require( 'axios' );
 const log4js = require( 'log4js' );
+const fetch = require( './fetch' );
 
 const logger = log4js.getLogger( 'slack' );
 
@@ -18,17 +19,50 @@ const sendAlert = ( message ) => {
   axios.post( process.env.SLACK_WEBHOOK_URL, { text: `${message}` } );
 };
 
-const sendItemInfo = ( items, responseUrl ) => {
+const sendItemInfo = async ( items, responseUrl ) => {
   logger.debug( 'constructing sendItemInfo message...' );
   logger.trace( JSON.stringify( items, null, 2 ) );
+  logger.debug( 'fetching account holds...' );
+  const { holdItemIds, holdsIds } = await fetch.accountHolds( {} );
+  logger.debug( `...got account holds ${holdItemIds}` );
+  logger.trace( holdItemIds );
   const body = { blocks: [] };
   items.forEach( ( item, index ) => {
+    const button = {
+      text: 'Request Hold',
+      style: 'primary',
+      action_id: 'request-hold',
+      value: item.id,
+    };
+    if ( holdItemIds.includes( item.id ) ) {
+      button.text = 'Cancel Hold';
+      button.style = 'danger';
+      button.action_id = 'cancel-hold';
+      button.value = `${holdsIds[holdItemIds.indexOf( item.id )]} ${item.id}`;
+    }
+    body.blocks.push(
+      {
+        type: 'image',
+        image_url: item.briefInfo.jacket.large || '//cor-cdn-static.bibliocommons.com/assets/default_covers/icon-movie-alldiscs-b7d1a6916a9a5872d5f910814880e6c0.png',
+        alt_text: item.briefInfo.title,
+      },
+    );
     body.blocks.push(
       {
         type: 'section',
         text: {
           type: 'mrkdwn',
           text: `*${index + 1}. ${item.briefInfo.title}* (${item.id})\n${item.briefInfo.subtitle}`,
+        },
+        accessory: {
+          type: 'button',
+          text: {
+            type: 'plain_text',
+            text: button.text,
+          },
+          style: button.style,
+          value: button.value,
+          action_id: button.action_id,
         },
       },
     );
@@ -57,11 +91,6 @@ const sendItemInfo = ( items, responseUrl ) => {
             text: `*Availability*\n${item.availability.availableCopies} out of ${item.availability.totalCopies}\n\n*Held*\n${item.availability.heldCopies}`,
           },
         ],
-        accessory: {
-          type: 'image',
-          image_url: item.briefInfo.jacket.small,
-          alt_text: item.briefInfo.title,
-        },
       },
     );
     body.blocks.push( divider );
@@ -95,7 +124,13 @@ const sendItemInfo = ( items, responseUrl ) => {
   } );
   logger.debug( 'posting sendItemInfo to slack...' );
   logger.trace( JSON.stringify( body ) );
-  try { axios.post( responseUrl, JSON.stringify( { ...body, response_type: 'in_channel' } ) ); } catch ( err ) { logger.error( err ); }
+  try {
+    return await axios.post( responseUrl, JSON.stringify( { ...body, response_type: 'in_channel' } ) );
+  } catch ( err ) {
+    logger.error( JSON.stringify( err.response.data ) );
+    logger.trace( err );
+    return err.response.data;
+  }
 };
 
 const sendMessage = ( message, responseUrl ) => {

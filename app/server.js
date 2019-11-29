@@ -51,9 +51,9 @@ const interval = process.env.NODE_ENV ? '0 */15 8-20 * * *' : '*/30 * * * * *';
 logger.info( `getting non holdable avail via cron ${interval}` );
 // get non holdable avail
 const job = new CronJob( interval, async () => {
-  const itemIds = await fetch.accountHolds( {} );
-  logger.debug( `...alert ids ${itemIds}` );
-  await utils.asyncForEach( itemIds, async ( itemId ) => {
+  const { holdItemIds } = await fetch.accountHolds( {} );
+  logger.debug( `...alert ids ${holdItemIds}` );
+  await utils.asyncForEach( holdItemIds, async ( itemId ) => {
     logger.info( `capturing avail for alert id ${itemId}...` );
     await capture.avail( itemId );
     logger.info( 'query avail...' );
@@ -64,7 +64,7 @@ const job = new CronJob( interval, async () => {
       smtp.sendMessage( `${itemId} - ${availMessage}` );
     }
   } );
-  const archivedResponse = await archive.itemsNotInList( itemIds );
+  const archivedResponse = await archive.itemsNotInList( holdItemIds );
   logger.info( archivedResponse );
 } );
 
@@ -83,21 +83,34 @@ app.post( '/find', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `searching by keywords ${req.body.text}...` );
   const results = await fetch.searchByKeywords( req.body.text );
-  slack.sendItemInfo( results, req.body.response_url );
+  if ( results.length === 0 ) {
+    slack.sendAlert( 'This aggression will not stand.  Try again.', req.body.response_url );
+  } else {
+    slack.sendItemInfo( results, req.body.response_url );
+  }
 } ) );
 
-app.post( '/hold', asyncHandler( async ( req, res ) => {
+app.post( '/interact', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
-  logger.info( `requesting hold for itemId ${req.body.text}...` );
-  const results = await fetch.addHold( { itemId: req.body.text } );
-  slack.sendAlert( `Hey, look, man...${results}`, req.body.response_url );
+  logger.info( 'parsing payload...' );
+  logger.trace( req.body.payload );
+  // eslint-disable-next-line camelcase
+  const { actions, response_url } = JSON.parse( req.body.payload );
+  let response = 'I don\'t know what you\'re talking about';
+  if ( actions[0].action_id === 'request-hold' ) {
+    response = await fetch.addHold( { itemId: actions[0].value } );
+  } else if ( actions[0].action_id === 'cancel-hold' ) {
+    const [holdsId, itemId] = actions[0].value.split( ' ' );
+    response = await fetch.cancelHold( { holdsId, itemId } );
+  }
+  slack.sendAlert( `Hey, look, man...${response}`, response_url );
 } ) );
 
 app.post( '/now', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( `fetching info for itemId ${req.body.text}...` );
-  const results = await fetch.infoById( req.body.text );
-  slack.sendItemInfo( [results], req.body.response_url );
+  const result = await fetch.infoById( req.body.text );
+  slack.sendItemInfo( [result], req.body.response_url );
 } ) );
 
 app.get( '/oauth', asyncHandler( async ( req, res ) => {

@@ -15,7 +15,7 @@ const itemsById = async ( itemId ) => {
 
 const itemsNotInList = async ( list ) => {
   try {
-    logger.debug( `archiving records for items not it ${list}...` );
+    logger.debug( `archiving records for items not in ${list}...` );
     const db = Datastore.create( path.join( __dirname, '..', 'data', 'libowski.db' ) );
     const numRemoved = await db.remove( { itemId: { $nin: list } }, { multi: true } );
     return `...archived ${numRemoved} records`;
