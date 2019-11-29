@@ -4,6 +4,7 @@ const fetch = require( './fetch' );
 
 const logger = log4js.getLogger( 'slack' );
 
+
 const divider = { type: 'divider' };
 
 const oauth = async ( code ) => {
@@ -17,6 +18,53 @@ const oauth = async ( code ) => {
 const sendAlert = ( message ) => {
   logger.debug( 'posting sendAlert message...' );
   axios.post( process.env.SLACK_WEBHOOK_URL, { text: `${message}` } );
+};
+
+const sendHoursInfo = async ( hoursForAll, responseUrl ) => {
+  logger.debug( 'constructing sendHoursInfo message...' );
+  logger.trace( JSON.stringify( hoursForAll, null, 2 ) );
+  const body = { blocks: [] };
+  body.blocks.push(
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: '*Locations and Hours*',
+      },
+    },
+  );
+  const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls', 'Tigard Public Library', 'Tualatin Public Library'];
+  hoursForAll.forEach( ( location ) => {
+    if ( branchesOfInterest.includes( location.name ) ) {
+      let hoursText = '*Hours*\n';
+      location.hours.forEach( ( day ) => {
+        hoursText += `${day.timeRef} ${day.openTime.substring( 1 )}-${day.closeTime.substring( 1 )}\n`;
+      } );
+      body.blocks.push(
+        {
+          type: 'section',
+          fields: [
+            {
+              type: 'mrkdwn',
+              text: `*Location*\n${location.name}`,
+            },
+            {
+              type: 'mrkdwn',
+              text: hoursText,
+            },
+          ],
+        },
+      );
+      body.blocks.push( divider );
+    }
+  } );
+  try {
+    return await axios.post( responseUrl, JSON.stringify( { ...body, response_type: 'in_channel' } ) );
+  } catch ( err ) {
+    logger.error( JSON.stringify( err.response.data ) );
+    logger.trace( err );
+    return err.response.data;
+  }
 };
 
 const sendItemInfo = async ( items, responseUrl ) => {
@@ -94,8 +142,8 @@ const sendItemInfo = async ( items, responseUrl ) => {
       },
     );
     body.blocks.push( divider );
-    const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls Library', 'Tigard Public Library', 'Tualatin Public Library'];
     const branchNames = [];
+    const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls Library', 'Tigard Public Library', 'Tualatin Public Library'];
     item.availabilities.forEach( ( availability ) => {
       if ( availability.status === 'AVAILABLE_ITEMS' ) {
         availability.items.forEach(
@@ -141,6 +189,7 @@ const sendMessage = ( message, responseUrl ) => {
 module.exports = {
   oauth,
   sendAlert,
+  sendHoursInfo,
   sendItemInfo,
   sendMessage,
 };

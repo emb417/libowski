@@ -90,6 +90,13 @@ app.post( '/find', asyncHandler( async ( req, res ) => {
   }
 } ) );
 
+app.post( '/hours', asyncHandler( async ( req, res ) => {
+  res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
+  logger.info( 'getting hours...' );
+  const results = await fetch.hoursForAll();
+  slack.sendHoursInfo( results, req.body.response_url );
+} ) );
+
 app.post( '/interact', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( 'parsing payload...' );
