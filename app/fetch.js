@@ -54,8 +54,8 @@ const accountCheckouts = async ( { libraryName, libraryPin } ) => {
     url: 'https://gateway.bibliocommons.com/v2/libraries/wccls/checkouts',
     params: {
       accountId,
-      size: 10,
-      status: 'OUT',
+      size: 25,
+      status: '',
       page: 1,
       sort: 'status',
       locale: 'en-US',
@@ -260,6 +260,46 @@ const infoById = async ( itemId ) => {
   } catch ( err ) { logger.error( err ); return err; }
 };
 
+const renewCheckout = async ( {
+  checkoutId,
+  libraryName,
+  libraryPin,
+} ) => {
+  try {
+    logger.debug( 'attempting renewal...' );
+    const {
+      accessToken,
+      accountId,
+      sessionId,
+    } = await accountTokens( { libraryName, libraryPin } );
+
+    const renewalResponse = await axios( {
+      method: 'patch',
+      url: 'https://gateway.bibliocommons.com/v2/libraries/wccls/checkouts',
+      params: {
+        locale: 'en-US',
+      },
+      data: {
+        accountId,
+        checkoutIds: [checkoutId],
+        renew: true,
+      },
+      headers: {
+        Cookie: `session_id=${sessionId}; bc_access_token=${accessToken};`,
+      },
+    } );
+    logger.trace( `...got account checkouts ${renewalResponse.data}` );
+    if ( renewalResponse.data.failures.length > 0 ) {
+      return renewalResponse.data.failures[0].errorResponseDTO.message;
+    }
+    return JSON.stringify( renewalResponse.data );
+  } catch ( err ) {
+    logger.error( JSON.stringify( err.response.data.error ) );
+    logger.trace( err );
+    return err.response.data.error.message;
+  }
+};
+
 const searchByKeywords = async ( keywords ) => {
   try {
     logger.debug( `getting search results for keywords ${keywords}...` );
@@ -291,5 +331,6 @@ module.exports = {
   cancelHold,
   hoursForAll,
   infoById,
+  renewCheckout,
   searchByKeywords,
 };

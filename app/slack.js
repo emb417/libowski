@@ -33,34 +33,68 @@ const sendCheckoutsInfo = async ( checkouts, responseUrl ) => {
       },
     },
   );
+  body.blocks.push(
+    {
+      type: 'section',
+      fields: [
+        {
+          type: 'mrkdwn',
+          text: '*Title*',
+        },
+        {
+          type: 'mrkdwn',
+          text: '*Due Date*',
+        },
+      ],
+      accessory: {
+        type: 'button',
+        text: {
+          type: 'plain_text',
+          text: 'Renew Below',
+        },
+        value: 'no-renew',
+        action_id: 'no-renew',
+      },
+    },
+  );
   checkouts.forEach( ( checkout ) => {
+    const button = {
+      type: 'button',
+      text: {
+        type: 'plain_text',
+        text: 'No Renew',
+      },
+      value: checkout.checkoutId,
+      action_id: 'no-renew',
+    };
+    if ( checkout.actions.includes( 'renew' ) ) {
+      button.text.text = 'Renew';
+      button.style = 'primary';
+      button.action_id = `renew-${checkout.itemId}`;
+    }
+    logger.debug( '...checkout button' );
+    logger.trace( JSON.stringify( button ) );
+    body.blocks.push( divider );
     body.blocks.push(
       {
         type: 'section',
         fields: [
           {
             type: 'mrkdwn',
-            text: `*Title*\n${checkout.bibTitle}`,
+            text: `${checkout.bibTitle}`,
           },
           {
             type: 'mrkdwn',
-            text: `*Due Date*\n${checkout.dueDate}`,
+            text: `${checkout.dueDate}`,
           },
         ],
-        accessory: {
-          type: 'button',
-          text: {
-            type: 'plain_text',
-            text: 'Renew',
-          },
-          style: 'primary',
-          value: 'item id',
-          action_id: 'renew',
-        },
+        accessory: button,
       },
     );
     body.blocks.push( divider );
   } );
+  logger.debug( '...body' );
+  logger.trace( JSON.stringify( body ) );
   try {
     return await axios.post( responseUrl, JSON.stringify( { ...body, response_type: 'ephemeral' } ) );
   } catch ( err ) {

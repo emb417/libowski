@@ -28,7 +28,7 @@ const log4jscfg = {
     },
   },
   categories: {
-    default: { appenders: ['file', 'console'], level: 'info' },
+    default: { appenders: ['file', 'console'], level: 'debug' },
   },
 };
 log4js.configure( log4jscfg );
@@ -116,6 +116,9 @@ app.post( '/interact', asyncHandler( async ( req, res ) => {
   } else if ( actions[0].action_id === 'cancel-hold' ) {
     const [holdsId, itemId] = actions[0].value.split( ' ' );
     response = await fetch.cancelHold( { holdsId, itemId } );
+  } else if ( actions[0].action_id.indexOf( 'renew-' ) === 0 ) {
+    const checkoutId = actions[0].value;
+    response = await fetch.renewCheckout( { checkoutId } );
   }
   slack.sendAlert( `Hey, look, man...${response}`, response_url );
 } ) );
