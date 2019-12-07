@@ -41,6 +41,47 @@ const accountTokens = async ( { libraryName, libraryPin } ) => {
   };
 };
 
+const accountCheckouts = async ( { libraryName, libraryPin } ) => {
+  logger.debug( 'getting account checkouts...' );
+  const {
+    accessToken,
+    accountId,
+    sessionId,
+  } = await accountTokens( { libraryName, libraryPin } );
+
+  const checkoutsResponse = await axios( {
+    method: 'get',
+    url: 'https://gateway.bibliocommons.com/v2/libraries/wccls/checkouts',
+    params: {
+      accountId,
+      size: 25,
+      status: '',
+      page: 1,
+      sort: 'status',
+      locale: 'en-US',
+    },
+    headers: {
+      Cookie: `session_id=${sessionId}; bc_access_token=${accessToken};`,
+    },
+  } );
+  logger.trace( `...got account checkouts ${checkoutsResponse.data}` );
+  const { checkouts } = checkoutsResponse.data.entities;
+  const checkoutsArray = [];
+  Object.entries( checkouts ).forEach( ( checkout ) => {
+    logger.debug( 'checkout...' );
+    logger.trace( JSON.stringify( checkout, null, 2 ) );
+    const [, item] = checkout;
+    checkoutsArray.push( {
+      bibTitle: item.bibTitle,
+      actions: item.actions,
+      checkoutId: item.checkoutId,
+      itemId: item.metadataId,
+      dueDate: item.dueDate,
+    } );
+  } );
+  return checkoutsArray;
+};
+
 const accountHolds = async ( { libraryName, libraryPin } ) => {
   logger.debug( 'getting account holds...' );
   const {
@@ -219,6 +260,54 @@ const infoById = async ( itemId ) => {
   } catch ( err ) { logger.error( err ); return err; }
 };
 
+const renewCheckout = async ( {
+  checkoutId,
+  libraryName,
+  libraryPin,
+} ) => {
+  try {
+    logger.debug( 'attempting renewal...' );
+    const {
+      accessToken,
+      accountId,
+      sessionId,
+    } = await accountTokens( { libraryName, libraryPin } );
+
+    const renewalResponse = await axios( {
+      method: 'patch',
+      url: 'https://gateway.bibliocommons.com/v2/libraries/wccls/checkouts',
+      params: {
+        locale: 'en-US',
+      },
+      data: {
+        accountId,
+        checkoutIds: [checkoutId],
+        renew: true,
+      },
+      headers: {
+        Cookie: `session_id=${sessionId}; bc_access_token=${accessToken};`,
+      },
+    } );
+    logger.debug( '...got account checkouts' );
+    logger.trace( JSON.stringify( renewalResponse.data ) );
+    if ( renewalResponse.data.failures.length > 0 ) {
+      logger.debug( '...failures' );
+      return renewalResponse.data.failures[0].errorResponseDTO.message;
+    }
+    if ( renewalResponse.data.borrowing.checkouts.items.length > 0 ) {
+      logger.debug( '...renewed' );
+      const renewedItem = Object.entries( renewalResponse.data.entities.checkouts )[0][1];
+      return `${renewedItem.bibTitle} is now due on ${renewedItem.dueDate}.`;
+    }
+    logger.debug( '...other' );
+    return JSON.stringify( renewalResponse.data );
+  } catch ( err ) {
+    logger.error( JSON.stringify( err ) );
+    logger.trace( err );
+    return err;
+  }
+};
+
 const searchByKeywords = async ( keywords ) => {
   try {
     logger.debug( `getting search results for keywords ${keywords}...` );
@@ -243,11 +332,13 @@ const searchByKeywords = async ( keywords ) => {
 };
 
 module.exports = {
+  accountCheckouts,
   accountHolds,
   accountTokens,
   addHold,
   cancelHold,
   hoursForAll,
   infoById,
+  renewCheckout,
   searchByKeywords,
 };
