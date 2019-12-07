@@ -288,15 +288,23 @@ const renewCheckout = async ( {
         Cookie: `session_id=${sessionId}; bc_access_token=${accessToken};`,
       },
     } );
-    logger.trace( `...got account checkouts ${renewalResponse.data}` );
+    logger.debug( '...got account checkouts' );
+    logger.trace( JSON.stringify( renewalResponse.data ) );
     if ( renewalResponse.data.failures.length > 0 ) {
+      logger.debug( '...failures' );
       return renewalResponse.data.failures[0].errorResponseDTO.message;
     }
+    if ( renewalResponse.data.borrowing.checkouts.items.length > 0 ) {
+      logger.debug( '...renewed' );
+      const renewedItem = Object.entries( renewalResponse.data.entities.checkouts )[0][1];
+      return `${renewedItem.bibTitle} is now due on ${renewedItem.dueDate}.`;
+    }
+    logger.debug( '...other' );
     return JSON.stringify( renewalResponse.data );
   } catch ( err ) {
-    logger.error( JSON.stringify( err.response.data.error ) );
+    logger.error( JSON.stringify( err ) );
     logger.trace( err );
-    return err.response.data.error.message;
+    return err;
   }
 };
 
