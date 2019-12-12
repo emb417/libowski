@@ -4,6 +4,7 @@ const asyncHandler = require( 'express-async-handler' );
 const bodyParser = require( 'body-parser' );
 const express = require( 'express' );
 const fs = require( 'fs' );
+const helmet = require( 'helmet' );
 const log4js = require( 'log4js' );
 const path = require( 'path' );
 
@@ -72,6 +73,7 @@ job.start();
 
 // instantiate express app
 const app = express();
+app.use( helmet() );
 
 // express middleware
 app.use( log4js.connectLogger( logger ) );
