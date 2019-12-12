@@ -132,13 +132,6 @@ app.post( '/interact', asyncHandler( async ( req, res ) => {
   slack.sendAlert( `Hey, look, man...${response}`, response_url );
 } ) );
 
-app.post( '/now', asyncHandler( async ( req, res ) => {
-  res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
-  logger.info( `fetching info for itemId ${req.body.text}...` );
-  const result = await fetch.infoById( req.body.text );
-  slack.sendItemInfo( [result], req.body.response_url );
-} ) );
-
 app.get( '/oauth', asyncHandler( async ( req, res ) => {
   if ( !req.query.code ) {
     res.status( 500 );
