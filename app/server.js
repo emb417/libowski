@@ -99,6 +99,13 @@ app.post( '/find', asyncHandler( async ( req, res ) => {
   }
 } ) );
 
+app.post( '/holds', asyncHandler( async ( req, res ) => {
+  res.send( { text: 'The Dude abides...', response_type: 'ephemeral' } );
+  logger.info( 'getting holds...' );
+  const { holdItems } = await fetch.accountHolds( {} );
+  slack.sendHoldsInfo( holdItems, req.body.response_url );
+} ) );
+
 app.post( '/hours', asyncHandler( async ( req, res ) => {
   res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
   logger.info( 'getting hours...' );
@@ -115,7 +122,7 @@ app.post( '/interact', asyncHandler( async ( req, res ) => {
   let response = 'I don\'t know what you\'re talking about';
   if ( actions[0].action_id === 'request-hold' ) {
     response = await fetch.addHold( { itemId: actions[0].value } );
-  } else if ( actions[0].action_id === 'cancel-hold' ) {
+  } else if ( actions[0].action_id.indexOf( 'cancel-hold' ) === 0 ) {
     const [holdsId, itemId] = actions[0].value.split( ' ' );
     response = await fetch.cancelHold( { holdsId, itemId } );
   } else if ( actions[0].action_id.indexOf( 'renew-' ) === 0 ) {

@@ -104,17 +104,19 @@ const accountHolds = async ( { libraryName, libraryPin } ) => {
       Cookie: `session_id=${sessionId}; bc_access_token=${accessToken};`,
     },
   } );
-  logger.trace( `...got account holds ${holdsResponse.data}` );
+  logger.debug( '...got account holds' );
+  logger.trace( JSON.stringify( holdsResponse.data ) );
   const { holds } = holdsResponse.data.entities;
-  const holdArray = { holdsIds: [], holdItemIds: [] };
-  await asyncForEach( Object.entries( holds ),
-    async ( hold ) => {
-      logger.debug( 'hold...' );
-      logger.trace( JSON.stringify( hold, null, 2 ) );
-      const [, item] = hold;
-      if ( item.status === 'NOT_YET_AVAILABLE' ) {
-        holdArray.holdItemIds.push( item.metadataId );
-        holdArray.holdsIds.push( item.holdsId );
+  const { items } = holdsResponse.data.borrowing.holds;
+  const holdArray = { holdsIds: [], holdItemIds: [], holdItems: [] };
+  await asyncForEach( items,
+    async ( item ) => {
+      logger.debug( 'hold item...' );
+      logger.trace( JSON.stringify( item, null, 2 ) );
+      holdArray.holdItems.push( holds[item] );
+      if ( holds[item].status === 'NOT_YET_AVAILABLE' ) {
+        holdArray.holdItemIds.push( holds[item].metadataId );
+        holdArray.holdsIds.push( holds[item].holdsId );
       }
     } );
   return holdArray;

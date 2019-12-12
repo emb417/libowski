@@ -104,6 +104,93 @@ const sendCheckoutsInfo = async ( checkouts, responseUrl ) => {
   }
 };
 
+const sendHoldsInfo = async ( holds, responseUrl ) => {
+  logger.debug( 'sending holds info...' );
+  logger.trace( JSON.stringify( holds, null, 2 ) );
+  const body = { blocks: [] };
+  body.blocks.push(
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: '*Holds*',
+      },
+    },
+  );
+  body.blocks.push(
+    {
+      type: 'section',
+      fields: [
+        {
+          type: 'mrkdwn',
+          text: '*Title*',
+        },
+        {
+          type: 'mrkdwn',
+          text: '*Position*',
+        },
+      ],
+      accessory: {
+        type: 'button',
+        text: {
+          type: 'plain_text',
+          text: 'Cancel Below',
+        },
+        value: 'no-cancel',
+        action_id: 'no-cancel',
+      },
+    },
+  );
+  holds.forEach( ( hold ) => {
+    const button = {
+      type: 'button',
+      text: {
+        type: 'plain_text',
+        text: 'No Cancel',
+      },
+      value: hold.holdsId,
+      action_id: 'no-cancel',
+    };
+    if ( hold.actions.includes( 'cancel' ) ) {
+      button.text = {
+        type: 'plain_text',
+        text: 'Cancel Hold',
+      };
+      button.style = 'danger';
+      button.action_id = `cancel-hold-${hold.holdsId}`;
+      button.value = `${hold.holdsId} ${hold.metadataId}`;
+    }
+    logger.debug( '...cancel hold button' );
+    logger.trace( JSON.stringify( button ) );
+    body.blocks.push( divider );
+    body.blocks.push(
+      {
+        type: 'section',
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: `${hold.bibTitle}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: `${hold.holdsPosition}`,
+          },
+        ],
+        accessory: button,
+      },
+    );
+  } );
+  logger.debug( '...body' );
+  logger.trace( JSON.stringify( body ) );
+  try {
+    return await axios.post( responseUrl, JSON.stringify( { ...body, response_type: 'ephemeral' } ) );
+  } catch ( err ) {
+    logger.error( JSON.stringify( err.response.data ) );
+    logger.trace( err );
+    return err.response.data;
+  }
+};
+
 const sendHoursInfo = async ( hoursForAll, responseUrl ) => {
   logger.debug( 'constructing sendHoursInfo message...' );
   logger.trace( JSON.stringify( hoursForAll, null, 2 ) );
@@ -274,6 +361,7 @@ module.exports = {
   oauth,
   sendAlert,
   sendCheckoutsInfo,
+  sendHoldsInfo,
   sendHoursInfo,
   sendItemInfo,
   sendMessage,
