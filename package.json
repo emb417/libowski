@@ -1,6 +1,6 @@
 {
   "name": "libowski",
-  "version": "1.14.0",
+  "version": "1.14.1",
   "description": "Library Chat Bot",
   "author": "Eric B.",
   "license": "ISC",
@@ -23,6 +23,7 @@
     "express": "^4.17.1",
     "express-async-handler": "^1.1.4",
     "googleapis": "^45.0.0",
+    "helmet": "^3.21.2",
     "lodash": "^4.17.15",
     "log4js": "^5.2.2",
     "nedb": "^1.8.0",
