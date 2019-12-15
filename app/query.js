@@ -1,38 +1,62 @@
-const path = require( 'path' );
+const _ = require( 'lodash' );
 const Datastore = require( 'nedb-promises' );
 const log4js = require( 'log4js' );
-const _ = require( 'lodash' );
+const path = require( 'path' );
 
 const logger = log4js.getLogger( 'query' );
+
+const compareAvail = ( availEvents ) => {
+  logger.debug( '...compareAvail' );
+  logger.trace( JSON.stringify( availEvents ) );
+  let availableAtBranchNames = [];
+  let goneAtBranchNames = [];
+  if ( availEvents.length > 0 ) {
+    // might be new avail
+    availableAtBranchNames = [...availEvents[0].branchNames];
+    logger.debug( 'initial availableAtBranchNames...' );
+    logger.trace( availableAtBranchNames );
+  }
+  if ( availEvents.length > 1 ) {
+    goneAtBranchNames = [...availEvents[1].branchNames];
+    logger.debug( 'initial goneAtBranchNames...' );
+    logger.trace( goneAtBranchNames );
+    // might be avail
+    availEvents[1].branchNames.forEach( ( priorBranchName ) => availableAtBranchNames
+      .splice( _.findIndex( availableAtBranchNames, priorBranchName ), 1 ) );
+    // might be gone
+    availEvents[0].branchNames.forEach( ( recentBranchName ) => goneAtBranchNames
+      .splice( goneAtBranchNames.findIndex( recentBranchName ), 1 ) );
+  }
+  logger.debug( 'final availableAtBranchNames...' );
+  logger.trace( availableAtBranchNames );
+  logger.debug( 'final goneAtBranchNames...' );
+  logger.trace( goneAtBranchNames );
+  return { availableAtBranchNames, goneAtBranchNames };
+};
 
 const avail = async ( itemId ) => {
   logger.debug( `avail for ${itemId}...` );
   const db = Datastore.create( path.join( __dirname, '..', 'data', 'libowski.db' ) );
-  const results = await db.find( { itemId, eventType: 'avail' } ).sort( {
+  const availEvents = await db.find( { itemId, eventType: 'avail' } ).sort( {
     timestamp: -1,
   } ).limit( 2 );
-  logger.debug( 'avail results...' );
-  logger.trace( JSON.stringify( results, null, 2 ) );
-  const title = `${results[0].title}${results[0].subtitle
-    ? ` - ${results[0].subtitle}` : ''} (${results[0].format})`;
-  if ( results.length > 1
-    && results[0].branchNames.length !== results[1].branchNames.length ) {
-    return results[0].branchNames.length > results[1].branchNames.length
-      ? `${title} is @ ${_.difference( results[0].branchNames, results[1].branchNames )}`
-      : `${title} is GONE @ ${_.difference( results[1].branchNames, results[0].branchNames )}`;
+  logger.debug( 'availEvents...' );
+  logger.trace( JSON.stringify( availEvents, null, 2 ) );
+  const title = `${availEvents[0].title}${availEvents[0].subtitle
+    ? ` - ${availEvents[0].subtitle}` : ''} (${availEvents[0].format})`;
+
+  const { availableAtBranchNames, goneAtBranchNames } = compareAvail( availEvents );
+  if ( availableAtBranchNames.length > 0 && goneAtBranchNames.length > 0 ) {
+    return `${title} is @ ${availableAtBranchNames} and GONE @ ${availableAtBranchNames}`;
   }
-  if ( results.length > 1
-    && results[0].branchNames.length > 0
-    && results[0].branchNames.length === results[1].branchNames.length
-    && ( _.difference( results[0].branchNames, results[1].branchNames ).length > 0
-    || _.difference( results[1].branchNames, results[0].branchNames ).length > 0 ) ) {
-    return `${title} is @ ${_.difference( results[0].branchNames, results[1].branchNames )} and is GONE @ ${_.difference( results[1].branchNames, results[0].branchNames )}`;
+  if ( goneAtBranchNames.length > 0 ) {
+    return `${title} is GONE @ ${availableAtBranchNames}`;
   }
-  if ( results.length === 1
-    && results[0].branchNames.length > 0 ) {
-    return `${title} is @ ${results[0].branchNames}`;
+  if ( availableAtBranchNames.length > 0 ) {
+    return `${title} is @ ${availableAtBranchNames}`;
   }
+  // send if no avail events
   return 'No Alert';
 };
 
-module.exports = { avail };
+module.exports = { avail, compareAvail };
