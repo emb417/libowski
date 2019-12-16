@@ -12,12 +12,12 @@ const compareAvail = ( availEvents ) => {
   let goneAtBranchNames = [];
   if ( availEvents.length > 0 ) {
     // might be new avail
-    availableAtBranchNames = [...availEvents[0].branchNames];
+    availableAtBranchNames = availEvents[0].branchNames;
     logger.debug( 'initial availableAtBranchNames...' );
     logger.trace( availableAtBranchNames );
   }
   if ( availEvents.length > 1 ) {
-    goneAtBranchNames = [...availEvents[1].branchNames];
+    goneAtBranchNames = availEvents[1].branchNames;
     logger.debug( 'initial goneAtBranchNames...' );
     logger.trace( goneAtBranchNames );
     // might be avail
@@ -25,7 +25,9 @@ const compareAvail = ( availEvents ) => {
       .splice( _.findIndex( availableAtBranchNames, priorBranchName ), 1 ) );
     // might be gone
     availEvents[0].branchNames.forEach( ( recentBranchName ) => goneAtBranchNames
-      .splice( goneAtBranchNames.findIndex( recentBranchName ), 1 ) );
+      .splice( goneAtBranchNames.findIndex(
+        ( priorBranchName ) => priorBranchName === recentBranchName,
+      ), 1 ) );
   }
   logger.debug( 'final availableAtBranchNames...' );
   logger.trace( availableAtBranchNames );
@@ -47,10 +49,10 @@ const avail = async ( itemId ) => {
 
   const { availableAtBranchNames, goneAtBranchNames } = compareAvail( availEvents );
   if ( availableAtBranchNames.length > 0 && goneAtBranchNames.length > 0 ) {
-    return `${title} is @ ${availableAtBranchNames} and GONE @ ${availableAtBranchNames}`;
+    return `${title} is @ ${availableAtBranchNames} and GONE @ ${goneAtBranchNames}`;
   }
   if ( goneAtBranchNames.length > 0 ) {
-    return `${title} is GONE @ ${availableAtBranchNames}`;
+    return `${title} is GONE @ ${goneAtBranchNames}`;
   }
   if ( availableAtBranchNames.length > 0 ) {
     return `${title} is @ ${availableAtBranchNames}`;
