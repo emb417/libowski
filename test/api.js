@@ -4,7 +4,7 @@
 const assert = require( 'assert' );
 const axios = require( 'axios' );
 
-describe( 'API', function () {
+describe.skip( 'API', function () {
   describe( 'index route', function () {
     let response;
     this.beforeAll( function ( done ) {

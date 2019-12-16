@@ -4,7 +4,7 @@
 const assert = require( 'assert' );
 const fetch = require( '../app/fetch' );
 
-describe( 'Find', function () {
+describe.skip( 'Find', function () {
   describe( 'items based on keywords', function () {
     let response;
     this.beforeAll( async function () {

@@ -13,7 +13,6 @@ const capture = require( './capture' );
 const fetch = require( './fetch' );
 const query = require( './query' );
 const slack = require( './slack' );
-const smtp = require( './smtp' );
 const utils = require( './utils' );
 
 // setup log dir and config logger
@@ -21,11 +20,9 @@ const log4jscfg = {
   appenders: {
     console: { type: 'console' },
     file: {
-      type: 'file',
+      type: 'dateFile',
       filename: 'logs/server.log',
-      maxLogSize: 10485760,
-      backups: 2,
-      compress: true,
+      keepFileExt: true,
     },
   },
   categories: {
@@ -62,7 +59,6 @@ const job = new CronJob( interval, async () => {
     if ( availMessage !== 'No Alert' ) {
       logger.info( 'alert...' );
       slack.sendAlert( `${itemId} - ${availMessage}` );
-      smtp.sendMessage( `${itemId} - ${availMessage}` );
     }
   } );
   const archivedResponse = await archive.itemsNotInList( holdItemIds );
@@ -73,11 +69,10 @@ job.start();
 
 // instantiate express app
 const app = express();
-app.use( helmet() );
 
 // express middleware
 app.use( log4js.connectLogger( logger ) );
-
+app.use( helmet() );
 app.use( bodyParser.urlencoded( { extended: false } ) );
 
 // express routes
