@@ -225,7 +225,7 @@ describe( 'Alert', function () {
         title: 'WarGames',
         format: 'BLURAY',
         publicationDate: '2012',
-        branchNames: ['Beaverton Murray Scholls', 'Tigard City Library'],
+        branchNames: ['Tualatin City Library', 'Tigard City Library'],
       },
     ];
     const { availableAtBranchNames, goneAtBranchNames } = query.compareAvail( swapAvails );

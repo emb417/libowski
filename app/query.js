@@ -1,4 +1,3 @@
-const _ = require( 'lodash' );
 const Datastore = require( 'nedb-promises' );
 const log4js = require( 'log4js' );
 const path = require( 'path' );
@@ -12,22 +11,30 @@ const compareAvail = ( availEvents ) => {
   let goneAtBranchNames = [];
   if ( availEvents.length > 0 ) {
     // might be new avail
-    availableAtBranchNames = availEvents[0].branchNames;
+    availableAtBranchNames = [...availEvents[0].branchNames];
     logger.debug( 'initial availableAtBranchNames...' );
     logger.trace( availableAtBranchNames );
   }
   if ( availEvents.length > 1 ) {
-    goneAtBranchNames = availEvents[1].branchNames;
+    goneAtBranchNames = [...availEvents[1].branchNames];
     logger.debug( 'initial goneAtBranchNames...' );
     logger.trace( goneAtBranchNames );
-    // might be avail
-    availEvents[1].branchNames.forEach( ( priorBranchName ) => availableAtBranchNames
-      .splice( _.findIndex( availableAtBranchNames, priorBranchName ), 1 ) );
     // might be gone
-    availEvents[0].branchNames.forEach( ( recentBranchName ) => goneAtBranchNames
-      .splice( goneAtBranchNames.findIndex(
+    availEvents[0].branchNames.forEach( ( recentBranchName ) => {
+      const indexOfRecentBranch = goneAtBranchNames.findIndex(
         ( priorBranchName ) => priorBranchName === recentBranchName,
-      ), 1 ) );
+      );
+      if ( indexOfRecentBranch > -1 ) { goneAtBranchNames.splice( indexOfRecentBranch, 1 ); }
+    } );
+    // might be avail
+    availEvents[1].branchNames.forEach( ( priorBranchName ) => {
+      const indexOfPriorBranch = availableAtBranchNames.findIndex(
+        ( recentBranchName ) => recentBranchName === priorBranchName,
+      );
+      if ( indexOfPriorBranch > -1 ) {
+        availableAtBranchNames.splice( indexOfPriorBranch, 1 );
+      }
+    } );
   }
   logger.debug( 'final availableAtBranchNames...' );
   logger.trace( availableAtBranchNames );
