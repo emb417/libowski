@@ -142,6 +142,12 @@ const sendHoldsInfo = async ( holds, responseUrl ) => {
     },
   );
   holds.forEach( ( hold ) => {
+    let holdPositionStatus = `${hold.holdsPosition}`;
+    if ( hold.status === 'IN_TRANSIT' ) {
+      holdPositionStatus = 'In Transit';
+    } else if ( hold.status === 'READY_FOR_PICKUP' ) {
+      holdPositionStatus = 'Ready';
+    }
     const button = {
       type: 'button',
       text: {
@@ -173,7 +179,7 @@ const sendHoldsInfo = async ( holds, responseUrl ) => {
           },
           {
             type: 'mrkdwn',
-            text: `${hold.holdsPosition}`,
+            text: holdPositionStatus,
           },
         ],
         accessory: button,

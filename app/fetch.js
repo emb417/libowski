@@ -114,10 +114,8 @@ const accountHolds = async ( { libraryName, libraryPin } ) => {
       logger.debug( 'hold item...' );
       logger.trace( JSON.stringify( item, null, 2 ) );
       holdArray.holdItems.push( holds[item] );
-      if ( holds[item].status === 'NOT_YET_AVAILABLE' ) {
-        holdArray.holdItemIds.push( holds[item].metadataId );
-        holdArray.holdsIds.push( holds[item].holdsId );
-      }
+      holdArray.holdItemIds.push( holds[item].metadataId );
+      holdArray.holdsIds.push( holds[item].holdsId );
     } );
   return holdArray;
 };

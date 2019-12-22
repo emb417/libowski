@@ -49,7 +49,25 @@ const interval = process.env.NODE_ENV ? '0 */15 8-20 * * *' : '*/30 * * * * *';
 logger.info( `getting non holdable avail via cron ${interval}` );
 // get non holdable avail
 const job = new CronJob( interval, async () => {
-  const { holdItemIds } = await fetch.accountHolds( {} );
+  const { holdItems, holdItemIds } = await fetch.accountHolds( {} );
+  logger.info( 'sending alert for elevated hold position...' );
+  await utils.asyncForEach( holdItems, async ( holdItem ) => {
+    logger.debug( '...alert hold item' );
+    logger.trace( JSON.stringify( holdItem ) );
+    if ( holdItem.status !== 'NOT_YET_AVAILABLE' ) {
+      const alertItem = await query.holdStatus( holdItem.holdsId );
+      let holdPositionStatus = '';
+      if ( Object.entries( alertItem ).length === 0 ) {
+        if ( holdItem.status === 'IN_TRANSIT' ) {
+          holdPositionStatus = 'In Transit';
+        } else if ( holdItem.status === 'READY_FOR_PICKUP' ) {
+          holdPositionStatus = 'Ready';
+        }
+        await capture.holdStatus( holdItem );
+        slack.sendAlert( `${holdItem.bibTitle} is ${holdPositionStatus}` );
+      }
+    }
+  } );
   logger.debug( `...alert ids ${holdItemIds}` );
   await utils.asyncForEach( holdItemIds, async ( itemId ) => {
     logger.info( `capturing avail for alert id ${itemId}...` );
