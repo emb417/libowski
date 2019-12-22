@@ -50,7 +50,6 @@ logger.info( `getting non holdable avail via cron ${interval}` );
 // get non holdable avail
 const job = new CronJob( interval, async () => {
   const { holdItems, holdItemIds } = await fetch.accountHolds( {} );
-  logger.info( 'sending alert for elevated hold position...' );
   await utils.asyncForEach( holdItems, async ( holdItem ) => {
     logger.debug( '...alert hold item' );
     logger.trace( JSON.stringify( holdItem ) );
@@ -64,6 +63,12 @@ const job = new CronJob( interval, async () => {
           holdPositionStatus = 'Ready';
         }
         await capture.holdStatus( holdItem );
+        logger.info( 'sending alert for elevated hold position...' );
+        slack.sendAlert( `${holdItem.bibTitle} is ${holdPositionStatus}` );
+      } else if ( alertItem.status === 'IN_TRANSIT' && holdItem.status === 'READY_FOR_PICKUP' ) {
+        holdPositionStatus = 'Ready';
+        await capture.holdStatus( holdItem );
+        logger.info( 'sending alert for elevated hold position...' );
         slack.sendAlert( `${holdItem.bibTitle} is ${holdPositionStatus}` );
       }
     }
