@@ -71,7 +71,9 @@ const avail = async ( itemId ) => {
 const holdStatus = async ( holdId ) => {
   logger.debug( `status for ${holdId}...` );
   const db = Datastore.create( path.join( __dirname, '..', 'data', 'libowski.db' ) );
-  const holdItemStatus = await db.find( { holdId, eventType: 'hold-status' } );
+  const holdItemStatus = await db.find( { holdId, eventType: 'hold-status' } ).sort( {
+    timestamp: -1,
+  } ).limit( 1 );
   logger.debug( 'holdItemStatus...' );
   logger.trace( JSON.stringify( holdItemStatus ) );
   return holdItemStatus;
