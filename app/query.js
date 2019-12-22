@@ -68,4 +68,13 @@ const avail = async ( itemId ) => {
   return 'No Alert';
 };
 
-module.exports = { avail, compareAvail };
+const holdStatus = async ( holdId ) => {
+  logger.debug( `status for ${holdId}...` );
+  const db = Datastore.create( path.join( __dirname, '..', 'data', 'libowski.db' ) );
+  const holdItemStatus = await db.find( { holdId, eventType: 'hold-status' } );
+  logger.debug( 'holdItemStatus...' );
+  logger.trace( JSON.stringify( holdItemStatus ) );
+  return holdItemStatus;
+};
+
+module.exports = { avail, compareAvail, holdStatus };
