@@ -50,25 +50,28 @@ logger.info( `getting non holdable avail via cron ${interval}` );
 // get non holdable avail
 const job = new CronJob( interval, async () => {
   const { holdItems, holdItemIds } = await fetch.accountHolds( {} );
+  logger.info( 'determining hold status elevations...' );
   await utils.asyncForEach( holdItems, async ( holdItem ) => {
     logger.debug( '...alert hold item' );
     logger.trace( JSON.stringify( holdItem ) );
     if ( holdItem.status !== 'NOT_YET_AVAILABLE' ) {
       const alertItem = await query.holdStatus( holdItem.holdsId );
+      logger.debug( '...alert item from db' );
+      logger.trace( JSON.stringify( alertItem[0] ) );
       let holdPositionStatus = '';
       if ( Object.entries( alertItem ).length === 0 ) {
+        logger.info( 'sending alert for elevated hold position...' );
         if ( holdItem.status === 'IN_TRANSIT' ) {
           holdPositionStatus = 'In Transit';
         } else if ( holdItem.status === 'READY_FOR_PICKUP' ) {
           holdPositionStatus = 'Ready';
         }
         await capture.holdStatus( holdItem );
-        logger.info( 'sending alert for elevated hold position...' );
         slack.sendAlert( `${holdItem.bibTitle} is ${holdPositionStatus}` );
-      } else if ( alertItem.status === 'IN_TRANSIT' && holdItem.status === 'READY_FOR_PICKUP' ) {
+      } else if ( alertItem[0].status === 'IN_TRANSIT' && holdItem.status === 'READY_FOR_PICKUP' ) {
+        logger.info( 'sending alert for elevated hold position...' );
         holdPositionStatus = 'Ready';
         await capture.holdStatus( holdItem );
-        logger.info( 'sending alert for elevated hold position...' );
         slack.sendAlert( `${holdItem.bibTitle} is ${holdPositionStatus}` );
       }
     }
