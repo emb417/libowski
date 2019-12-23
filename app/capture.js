@@ -72,7 +72,11 @@ const avail = async ( itemId ) => {
       return { docs };
     } );
     return `...inserted ${entity.briefInfo.title}`;
-  } catch ( err ) { logger.error( err ); return err; }
+  } catch ( err ) {
+    logger.error( JSON.stringify( err.response.data.error ) );
+    logger.trace( err );
+    return err.response.data.error.message;
+  }
 };
 
 module.exports = { avail, holdStatus };

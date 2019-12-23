@@ -51,18 +51,19 @@ const avail = async ( itemId ) => {
   } ).limit( 2 );
   logger.debug( 'availEvents...' );
   logger.trace( JSON.stringify( availEvents, null, 2 ) );
-  const title = `${availEvents[0].title}${availEvents[0].subtitle
-    ? ` - ${availEvents[0].subtitle}` : ''} (${availEvents[0].format})`;
-
-  const { availableAtBranchNames, goneAtBranchNames } = compareAvail( availEvents );
-  if ( availableAtBranchNames.length > 0 && goneAtBranchNames.length > 0 ) {
-    return `${title} is @ ${availableAtBranchNames} and GONE @ ${goneAtBranchNames}`;
-  }
-  if ( goneAtBranchNames.length > 0 ) {
-    return `${title} is GONE @ ${goneAtBranchNames}`;
-  }
-  if ( availableAtBranchNames.length > 0 ) {
-    return `${title} is @ ${availableAtBranchNames}`;
+  if ( availEvents.length !== 0 ) {
+    const title = `${availEvents[0].title}${availEvents[0].subtitle
+      ? ` - ${availEvents[0].subtitle}` : ''} (${availEvents[0].format})`;
+    const { availableAtBranchNames, goneAtBranchNames } = compareAvail( availEvents );
+    if ( availableAtBranchNames.length > 0 && goneAtBranchNames.length > 0 ) {
+      return `${title} is @ ${availableAtBranchNames} and GONE @ ${goneAtBranchNames}`;
+    }
+    if ( goneAtBranchNames.length > 0 ) {
+      return `${title} is GONE @ ${goneAtBranchNames}`;
+    }
+    if ( availableAtBranchNames.length > 0 ) {
+      return `${title} is @ ${availableAtBranchNames}`;
+    }
   }
   // send if no avail events
   return 'No Alert';
