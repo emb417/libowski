@@ -1,11 +1,9 @@
 const axios = require( 'axios' );
 const log4js = require( 'log4js' );
 const fetch = require( './fetch' );
-const { branchesOfInterest } = require( './utils' );
+const { branchesOfInterest, slack } = require( './utils' );
 
 const logger = log4js.getLogger( 'slack' );
-
-const divider = { type: 'divider' };
 
 const oauth = async ( code ) => {
   logger.debug( `oauth ${code}...` );
@@ -74,7 +72,7 @@ const sendCheckoutsInfo = async ( checkouts, responseUrl ) => {
     }
     logger.debug( '...checkout button' );
     logger.trace( JSON.stringify( button ) );
-    body.blocks.push( divider );
+    body.blocks.push( slack.divider );
     body.blocks.push(
       {
         type: 'section',
@@ -91,7 +89,7 @@ const sendCheckoutsInfo = async ( checkouts, responseUrl ) => {
         accessory: button,
       },
     );
-    body.blocks.push( divider );
+    body.blocks.push( slack.divider );
   } );
   logger.debug( '...body' );
   logger.trace( JSON.stringify( body ) );
@@ -168,7 +166,7 @@ const sendHoldsInfo = async ( holds, responseUrl ) => {
     }
     logger.debug( '...cancel hold button' );
     logger.trace( JSON.stringify( button ) );
-    body.blocks.push( divider );
+    body.blocks.push( slack.divider );
     body.blocks.push(
       {
         type: 'section',
@@ -231,7 +229,7 @@ const sendHoursInfo = async ( hoursForAll, responseUrl ) => {
           ],
         },
       );
-      body.blocks.push( divider );
+      body.blocks.push( slack.slack.divider );
     }
   } );
   try {
@@ -290,7 +288,7 @@ const sendItemInfo = async ( items, responseUrl ) => {
         },
       },
     );
-    body.blocks.push( divider );
+    body.blocks.push( slack.divider );
     body.blocks.push(
       {
         type: 'context',
@@ -317,7 +315,7 @@ const sendItemInfo = async ( items, responseUrl ) => {
         ],
       },
     );
-    body.blocks.push( divider );
+    body.blocks.push( slack.divider );
     const branchNames = [];
     item.availabilities.forEach( ( availability ) => {
       if ( availability.status === 'AVAILABLE_ITEMS' ) {
@@ -342,7 +340,7 @@ const sendItemInfo = async ( items, responseUrl ) => {
           },
         },
       );
-      body.blocks.push( divider );
+      body.blocks.push( slack.divider );
     }
   } );
   logger.debug( 'posting sendItemInfo to slack...' );

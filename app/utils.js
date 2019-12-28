@@ -6,4 +6,8 @@ const asyncForEach = async ( array, callback ) => {
 
 const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls Library', 'Tigard Public Library', 'Tualatin Public Library'];
 
-module.exports = { asyncForEach, branchesOfInterest };
+const slack = {
+  divider: { type: 'divider' },
+};
+
+module.exports = { asyncForEach, branchesOfInterest, slack };
