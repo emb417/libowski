@@ -27,19 +27,14 @@ const job = ( interval ) => new CronJob( interval, async () => {
       const alertItem = await query.holdStatus( holdItem.holdsId );
       logger.debug( '...alert item from db' );
       logger.trace( JSON.stringify( alertItem[0] ) );
-      let holdPositionStatus = '';
+      let holdPositionStatus = 'Ready For Pickup';
       if ( Object.entries( alertItem ).length === 0 ) {
         logger.info( 'sending alert for elevated hold position...' );
-        if ( holdItem.status === 'IN_TRANSIT' ) {
-          holdPositionStatus = 'In Transit';
-        } else if ( holdItem.status === 'READY_FOR_PICKUP' ) {
-          holdPositionStatus = 'Ready For Pickup';
-        }
+        if ( holdItem.status === 'IN_TRANSIT' ) { holdPositionStatus = 'In Transit'; }
         await capture.holdStatus( holdItem );
         slack.sendAlert( `${holdItem.bibTitle} is ${holdPositionStatus}` );
       } else if ( alertItem[0].status === 'IN_TRANSIT' && holdItem.status === 'READY_FOR_PICKUP' ) {
         logger.info( 'sending alert for elevated hold position...' );
-        holdPositionStatus = 'Ready For Pickup';
         await capture.holdStatus( holdItem );
         slack.sendAlert( `${holdItem.bibTitle} is ${holdPositionStatus}` );
       }
