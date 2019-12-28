@@ -1,5 +1,4 @@
 require( 'dotenv' ).config();
-const { CronJob } = require( 'cron' );
 const asyncHandler = require( 'express-async-handler' );
 const bodyParser = require( 'body-parser' );
 const express = require( 'express' );
@@ -8,12 +7,9 @@ const helmet = require( 'helmet' );
 const log4js = require( 'log4js' );
 const path = require( 'path' );
 
-const archive = require( './archive' );
-const capture = require( './capture' );
 const fetch = require( './fetch' );
-const query = require( './query' );
+const schedule = require( './schedule' );
 const slack = require( './slack' );
-const utils = require( './utils' );
 
 // setup log dir and config logger
 const log4jscfg = {
@@ -45,53 +41,8 @@ const dataDirectory = path.join( __dirname, '..', 'data' );
 fs.existsSync( dataDirectory ) || fs.mkdirSync( dataDirectory );
 logger.info( 'data directory in place...' );
 
-const interval = process.env.NODE_ENV ? '0 */15 8-20 * * *' : '*/30 * * * * *';
-logger.info( `getting non holdable avail via cron ${interval}` );
-// get non holdable avail
-const job = new CronJob( interval, async () => {
-  const { holdItems, holdItemIds } = await fetch.accountHolds( {} );
-  logger.info( 'determining hold status elevations...' );
-  await utils.asyncForEach( holdItems, async ( holdItem ) => {
-    logger.debug( '...alert hold item' );
-    logger.trace( JSON.stringify( holdItem ) );
-    if ( holdItem.status !== 'NOT_YET_AVAILABLE' ) {
-      const alertItem = await query.holdStatus( holdItem.holdsId );
-      logger.debug( '...alert item from db' );
-      logger.trace( JSON.stringify( alertItem[0] ) );
-      let holdPositionStatus = '';
-      if ( Object.entries( alertItem ).length === 0 ) {
-        logger.info( 'sending alert for elevated hold position...' );
-        if ( holdItem.status === 'IN_TRANSIT' ) {
-          holdPositionStatus = 'In Transit';
-        } else if ( holdItem.status === 'READY_FOR_PICKUP' ) {
-          holdPositionStatus = 'Ready';
-        }
-        await capture.holdStatus( holdItem );
-        slack.sendAlert( `${holdItem.bibTitle} is ${holdPositionStatus}` );
-      } else if ( alertItem[0].status === 'IN_TRANSIT' && holdItem.status === 'READY_FOR_PICKUP' ) {
-        logger.info( 'sending alert for elevated hold position...' );
-        holdPositionStatus = 'Ready';
-        await capture.holdStatus( holdItem );
-        slack.sendAlert( `${holdItem.bibTitle} is ${holdPositionStatus}` );
-      }
-    }
-  } );
-  logger.debug( `...alert ids ${holdItemIds}` );
-  await utils.asyncForEach( holdItemIds, async ( itemId ) => {
-    logger.info( `capturing avail for alert id ${itemId}...` );
-    await capture.avail( itemId );
-    logger.info( 'query avail...' );
-    const availMessage = await query.avail( itemId );
-    if ( availMessage !== 'No Alert' ) {
-      logger.info( 'alert...' );
-      slack.sendAlert( `${itemId} - ${availMessage}` );
-    }
-  } );
-  const archivedResponse = await archive.itemsNotInList( holdItemIds );
-  logger.info( archivedResponse );
-} );
-
-job.start();
+// schedule automation for alerting
+schedule.job.start();
 
 // instantiate express app
 const app = express();
@@ -167,4 +118,4 @@ app.get( '/oauth', asyncHandler( async ( req, res ) => {
 
 app.get( '*', ( req, res ) => { res.send( 'The Dude does not abide!' ); } );
 
-app.listen( ( process.env.PORT || 1337 ), logger.info( 'server started...' ) );
+app.listen( ( process.env.PORT || 1337 ), logger.info( 'Let\'s bowl...' ) );
