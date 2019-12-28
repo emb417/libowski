@@ -43,7 +43,9 @@ fs.existsSync( dataDirectory ) || fs.mkdirSync( dataDirectory );
 logger.info( 'data directory in place...' );
 
 // schedule automation for alerting
-schedule.job( process.env.JOB_INTERVAL || '0 */15 * * * *' );
+const interval = '0 */43 * * * *';
+logger.info( `configuring job via cron ${interval}` );
+schedule.job( process.env.JOB_INTERVAL || interval );
 
 // instantiate express app
 const app = express();

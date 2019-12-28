@@ -11,8 +11,6 @@ const utils = require( './utils' );
 const logger = log4js.getLogger( 'schedule' );
 
 const job = ( interval ) => new CronJob( interval, async () => {
-  logger.info( `Job configured via cron ${interval}` );
-
   logger.info( '********************' );
   const jobId = Date.now();
   logger.info( `${jobId} Job Started...` );
