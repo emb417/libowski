@@ -1,20 +1,23 @@
 # libowski
 
-The Great Libowski is an aspiring chat bot that allows you to interact with the [Washington County Cooperative Library](https://wccls.bibliocommons.com/) to find items based on keyword searches and to show which branches have the available items.
+The Great Libowski is a slack app using slash commands and webhooks to interact with the [Washington County Cooperative Library](https://wccls.bibliocommons.com/) system.  The most important feature of libowski is alerting you when non-holdable items are available for checkout at a branch of interest AND when items in your hold list have changed status, e.g. Wargames is In Transit OR Wargames is Ready For Pickup.
+
+Libowski can also help you:
+
+1. find items based on keyword searches (/libfind <keyword>)
+1. place holds (interactive button)
+1. cancel holds (interactive button)
+1. get a list of holds with position in line (/libholds)
+1. get a list of checked out items with due dates (/libcheckouts)
 
 ## Setup Server
-libowski can run as a stand alone express app or it can be used by an installed slack app, in either case dotenv is used for ids and secrets supporting sending both [smtp via gmail](https://github.com/emb417/libowski/blob/master/app/smtp.js) or [slacks](https://github.com/emb417/libowski/blob/master/app/slack.js).
+Libowski is a nodejs app using axios to fetch data from WCCL and express to handle interactive slack components.  Dotenv is used for ids and secrets, currently supporting [slack](https://github.com/emb417/libowski/blob/master/app/slack.js) and configured to support [smtp via gmail](https://github.com/emb417/libowski/blob/master/app/smtp.js) with an additional line of code needed.
 
-1. dotenv for smtp via gmail
+1. dotenv for library creds
 ```
-CLIENT_ID=
-CLIENT_SECRET=
-REFRESH_TOKEN=
-SCOPE=https://mail.google.com/
-REDIRECT_URL=https://developers.google.com/oauthplayground
-USER_EMAIL=<sender email>
-USER_NAME=<sender name>
-SMTP_ADDRESSES=<receiver emails comma separated>
+LIBRARY_NAME=<barcode>
+LIBRARY_PIN=<pin>
+HOLD_BRANCH_DEFAULT=<branchid>
 ```
 2. dotenv for slack
 ```
@@ -25,10 +28,16 @@ SLACK_CLIENT_ID=
 SLACK_CLIENT_SECRET=
 SLACK_SIGNING_SECRET=
 ```
-3. dotenv for library creds
+3. dotenv for smtp via gmail
 ```
-LIBRARY_NAME=<barcode>
-LIBRARY_PIN=<pin>
+CLIENT_ID=
+CLIENT_SECRET=
+REFRESH_TOKEN=
+SCOPE=https://mail.google.com/
+REDIRECT_URL=https://developers.google.com/oauthplayground
+USER_EMAIL=<sender email>
+USER_NAME=<sender name>
+SMTP_ADDRESSES=<receiver emails comma separated>
 ```
 4. Start app with alerts scheduled every 30 seconds
 ```
@@ -47,19 +56,21 @@ npm run start-prod
 
 ## App modules
 ### server
-* logging, scheduling alerts, and routing gets/posts
+* logging, file setup, schedule setup, and routing gets/posts
+### schedule
+* running scheduled jobs for hold status updates and avail alerts
 ### fetch
 * external api requests to wccls
 ### query
-* nedb finds for alerts
+* queries nedb for past records and compares for alerting
 ### capture
-* nedb inserts for availability changes
+* inserts into nedb for hold status and availability changes
 ### archive
-* nedb removes for old items not in holds list
+* removes from nedb for old items not in holds list
 ### slack
-* formatting blocks
+* formatting blocks, basic alerts, and posting to slack
 ### smtp
 * sends emails via gmail
 
 ## Tests
-Always needs improvement...
+Basic framework with mocha and nyc setup with a few basic tests...needs improvement...

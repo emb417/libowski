@@ -19,6 +19,7 @@ const log4jscfg = {
       type: 'dateFile',
       filename: 'logs/server.log',
       keepFileExt: true,
+      daysToKeep: 3,
     },
   },
   categories: {
@@ -42,7 +43,7 @@ fs.existsSync( dataDirectory ) || fs.mkdirSync( dataDirectory );
 logger.info( 'data directory in place...' );
 
 // schedule automation for alerting
-schedule.job.start();
+schedule.job( process.env.JOB_INTERVAL || '0 */15 * * * *' );
 
 // instantiate express app
 const app = express();

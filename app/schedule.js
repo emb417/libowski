@@ -10,9 +10,7 @@ const utils = require( './utils' );
 
 const logger = log4js.getLogger( 'schedule' );
 
-const interval = process.env.NODE_ENV ? '0 */15 8-20 * * *' : '*/30 * * * * *';
-
-const job = new CronJob( interval, async () => {
+const job = ( interval ) => new CronJob( interval, async () => {
   logger.info( `Job configured via cron ${interval}` );
 
   logger.info( '********************' );
@@ -35,13 +33,13 @@ const job = new CronJob( interval, async () => {
         if ( holdItem.status === 'IN_TRANSIT' ) {
           holdPositionStatus = 'In Transit';
         } else if ( holdItem.status === 'READY_FOR_PICKUP' ) {
-          holdPositionStatus = 'Ready';
+          holdPositionStatus = 'Ready For Pickup';
         }
         await capture.holdStatus( holdItem );
         slack.sendAlert( `${holdItem.bibTitle} is ${holdPositionStatus}` );
       } else if ( alertItem[0].status === 'IN_TRANSIT' && holdItem.status === 'READY_FOR_PICKUP' ) {
         logger.info( 'sending alert for elevated hold position...' );
-        holdPositionStatus = 'Ready';
+        holdPositionStatus = 'Ready For Pickup';
         await capture.holdStatus( holdItem );
         slack.sendAlert( `${holdItem.bibTitle} is ${holdPositionStatus}` );
       }
@@ -66,6 +64,6 @@ const job = new CronJob( interval, async () => {
   if ( numOfArchivedItems > 0 ) { logger.info( `...${numOfArchivedItems} items archived` ); }
   logger.info( `${jobId} Job Completed in ${( Date.now() - jobId ) / 1000} seconds` );
   logger.info( '********************' );
-} );
+} ).start();
 
 module.exports = { job };
