@@ -8,6 +8,13 @@ const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls 
 
 const slack = {
   divider: { type: 'divider' },
+  header: ( headerText ) => ( {
+    type: 'section',
+    text: {
+      type: 'mrkdwn',
+      text: headerText,
+    },
+  } ),
 };
 
 module.exports = { asyncForEach, branchesOfInterest, slack };

@@ -22,15 +22,7 @@ const sendCheckoutsInfo = async ( checkouts, responseUrl ) => {
   logger.debug( 'constructing sendCheckoutsInfo message...' );
   logger.trace( JSON.stringify( checkouts, null, 2 ) );
   const body = { blocks: [] };
-  body.blocks.push(
-    {
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: '*Checkouts*',
-      },
-    },
-  );
+  body.blocks.push( slack.header( '*Checkouts*' ) );
   body.blocks.push(
     {
       type: 'section',
