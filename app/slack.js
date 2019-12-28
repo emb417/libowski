@@ -1,9 +1,9 @@
 const axios = require( 'axios' );
 const log4js = require( 'log4js' );
 const fetch = require( './fetch' );
+const { branchesOfInterest } = require( './utils' );
 
 const logger = log4js.getLogger( 'slack' );
-
 
 const divider = { type: 'divider' };
 
@@ -210,7 +210,6 @@ const sendHoursInfo = async ( hoursForAll, responseUrl ) => {
       },
     },
   );
-  const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls', 'Tigard Public Library', 'Tualatin Public Library'];
   hoursForAll.forEach( ( location ) => {
     if ( branchesOfInterest.includes( location.name ) ) {
       let hoursText = '*Hours*\n';
@@ -320,7 +319,6 @@ const sendItemInfo = async ( items, responseUrl ) => {
     );
     body.blocks.push( divider );
     const branchNames = [];
-    const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls Library', 'Tigard Public Library', 'Tualatin Public Library'];
     item.availabilities.forEach( ( availability ) => {
       if ( availability.status === 'AVAILABLE_ITEMS' ) {
         availability.items.forEach(

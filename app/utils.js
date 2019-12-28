@@ -4,4 +4,6 @@ const asyncForEach = async ( array, callback ) => {
   }
 };
 
-module.exports = { asyncForEach };
+const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls Library', 'Tigard Public Library', 'Tualatin Public Library'];
+
+module.exports = { asyncForEach, branchesOfInterest };
