@@ -98,15 +98,7 @@ const sendHoldsInfo = async ( holds, responseUrl ) => {
   logger.debug( 'sending holds info...' );
   logger.trace( JSON.stringify( holds, null, 2 ) );
   const body = { blocks: [] };
-  body.blocks.push(
-    {
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: '*Holds*',
-      },
-    },
-  );
+  body.blocks.push( slack.header( '*Holds*' ) );
   body.blocks.push(
     {
       type: 'section',
@@ -191,15 +183,7 @@ const sendHoursInfo = async ( hoursForAll, responseUrl ) => {
   logger.debug( 'constructing sendHoursInfo message...' );
   logger.trace( JSON.stringify( hoursForAll, null, 2 ) );
   const body = { blocks: [] };
-  body.blocks.push(
-    {
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: '*Locations and Hours*',
-      },
-    },
-  );
+  body.blocks.push( slack.header( '*Locations and Hours*' ) );
   hoursForAll.forEach( ( location ) => {
     if ( branchesOfInterest.includes( location.name ) ) {
       let hoursText = '*Hours*\n';
@@ -221,7 +205,7 @@ const sendHoursInfo = async ( hoursForAll, responseUrl ) => {
           ],
         },
       );
-      body.blocks.push( slack.slack.divider );
+      body.blocks.push( slack.divider );
     }
   } );
   try {
@@ -323,15 +307,7 @@ const sendItemInfo = async ( items, responseUrl ) => {
       }
     } );
     if ( branchNames.length > 0 ) {
-      body.blocks.push(
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `*Available @ Branches of Interest*\n${branchNames.join( '\n' )}`,
-          },
-        },
-      );
+      body.blocks.push( slack.header( `*Available @ Branches of Interest*\n${branchNames.join( '\n' )}` ) );
       body.blocks.push( slack.divider );
     }
   } );
