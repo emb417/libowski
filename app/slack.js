@@ -112,28 +112,17 @@ const sendHoursInfo = async ( hoursForAll, responseUrl ) => {
   logger.debug( 'constructing sendHoursInfo message...' );
   logger.trace( JSON.stringify( hoursForAll, null, 2 ) );
   const body = { blocks: [] };
-  body.blocks.push( slack.header( '*Locations and Hours*' ) );
+  body.blocks.push( slack.header( { headerText: '*Locations and Hours*' } ) );
   hoursForAll.forEach( ( location ) => {
     if ( branchesOfInterest.includes( location.name ) ) {
       let hoursText = '*Hours*\n';
       location.hours.forEach( ( day ) => {
         hoursText += `${day.timeRef} ${day.openTime.substring( 1 )}-${day.closeTime.substring( 1 )}\n`;
       } );
-      body.blocks.push(
-        {
-          type: 'section',
-          fields: [
-            {
-              type: 'mrkdwn',
-              text: `*Location*\n${location.name}`,
-            },
-            {
-              type: 'mrkdwn',
-              text: hoursText,
-            },
-          ],
-        },
-      );
+      body.blocks.push( slack.twoColumn( {
+        columnOneText: `*Location*\n${location.name}`,
+        columnTwoText: hoursText,
+      } ) );
       body.blocks.push( slack.divider );
     }
   } );

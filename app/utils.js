@@ -38,6 +38,19 @@ const slack = {
       action_id: options.buttonActionId,
     },
   } ),
+  twoColumn: ( options ) => ( {
+    type: 'section',
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: options.columnOneText,
+      },
+      {
+        type: 'mrkdwn',
+        text: options.columnTwoText,
+      },
+    ],
+  } ),
 };
 
 module.exports = { asyncForEach, branchesOfInterest, slack };
