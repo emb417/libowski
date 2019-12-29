@@ -23,7 +23,7 @@ const log4jscfg = {
     },
   },
   categories: {
-    default: { appenders: ['file', 'console'], level: 'trace' },
+    default: { appenders: ['file', 'console'], level: 'info' },
   },
 };
 log4js.configure( log4jscfg );
@@ -64,7 +64,7 @@ app.post( '/checkouts', asyncHandler( async ( req, res ) => {
 } ) );
 
 app.post( '/find', asyncHandler( async ( req, res ) => {
-  res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
+  res.send( { text: 'The Dude abides...', response_type: 'ephemeral' } );
   logger.info( `searching by keywords ${req.body.text}...` );
   const results = await fetch.searchByKeywords( req.body.text );
   if ( results.length === 0 ) {
@@ -82,14 +82,14 @@ app.post( '/holds', asyncHandler( async ( req, res ) => {
 } ) );
 
 app.post( '/hours', asyncHandler( async ( req, res ) => {
-  res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
+  res.send( { text: 'The Dude abides...', response_type: 'ephemeral' } );
   logger.info( 'getting hours...' );
   const results = await fetch.hoursForAll();
   slack.sendHoursInfo( results, req.body.response_url );
 } ) );
 
 app.post( '/interact', asyncHandler( async ( req, res ) => {
-  res.send( { text: 'The Dude abides...', response_type: 'in_channel' } );
+  res.send( { text: 'The Dude abides...', response_type: 'ephemeral' } );
   logger.info( 'parsing payload...' );
   logger.trace( req.body.payload );
   // eslint-disable-next-line camelcase

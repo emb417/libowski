@@ -183,32 +183,11 @@ const sendItemInfo = async ( items, responseUrl ) => {
       },
     );
     body.blocks.push( slack.divider );
-    body.blocks.push(
-      {
-        type: 'context',
-        elements: [
-          {
-            type: 'mrkdwn',
-            text: item.briefInfo.description || 'No Description',
-          },
-        ],
-      },
-    );
-    body.blocks.push(
-      {
-        type: 'section',
-        fields: [
-          {
-            type: 'mrkdwn',
-            text: `*Year*\n${item.briefInfo.publicationDate}\n\n*Format*\n${item.briefInfo.format}`,
-          },
-          {
-            type: 'mrkdwn',
-            text: `*Availability*\n${item.availability.availableCopies} out of ${item.availability.totalCopies}\n\n*Held*\n${item.availability.heldCopies}`,
-          },
-        ],
-      },
-    );
+    body.blocks.push( slack.context( { contextText: item.briefInfo.description || 'No Description' } ) );
+    body.blocks.push( slack.twoColumn( {
+      columnOneText: `*Year*\n${item.briefInfo.publicationDate}\n\n*Format*\n${item.briefInfo.format}`,
+      columnTwoText: `*Availability*\n${item.availability.availableCopies} out of ${item.availability.totalCopies}\n\n*Held*\n${item.availability.heldCopies}`,
+    } ) );
     body.blocks.push( slack.divider );
     const branchNames = [];
     item.availabilities.forEach( ( availability ) => {
@@ -224,25 +203,22 @@ const sendItemInfo = async ( items, responseUrl ) => {
         );
       }
     } );
+    logger.debug( '...branchNames of available items' );
+    logger.trace( JSON.stringify( branchNames ) );
     if ( branchNames.length > 0 ) {
-      body.blocks.push( slack.header( `*Available @ Branches of Interest*\n${branchNames.join( '\n' )}` ) );
+      body.blocks.push( slack.header( { headerText: `*Available @ Branches of Interest*\n${branchNames.join( '\n' )}` } ) );
       body.blocks.push( slack.divider );
     }
   } );
   logger.debug( 'posting sendItemInfo to slack...' );
   logger.trace( JSON.stringify( body ) );
   try {
-    return await axios.post( responseUrl, JSON.stringify( { ...body, response_type: 'in_channel' } ) );
+    return await axios.post( responseUrl, JSON.stringify( { ...body, response_type: 'ephemeral' } ) );
   } catch ( err ) {
     logger.error( JSON.stringify( err.response.data ) );
     logger.trace( err );
     return err.response.data;
   }
-};
-
-const sendMessage = ( message, responseUrl ) => {
-  logger.debug( 'posting message...' );
-  try { axios.post( responseUrl, JSON.stringify( { text: message, response_type: 'in_channel' } ) ); } catch ( err ) { logger.error( err ); }
 };
 
 module.exports = {
@@ -252,5 +228,4 @@ module.exports = {
   sendHoldsInfo,
   sendHoursInfo,
   sendItemInfo,
-  sendMessage,
 };
