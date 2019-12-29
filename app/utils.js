@@ -29,6 +29,25 @@ const slack = {
     image_url: options.url,
     alt_text: options.alt,
   } ),
+  oneColumnWithButton: ( options ) => ( {
+    type: 'section',
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: options.columnOneText,
+      },
+    ],
+    accessory: {
+      type: 'button',
+      style: options.buttonStyle,
+      text: {
+        type: 'plain_text',
+        text: options.buttonText,
+      },
+      value: options.buttonValue,
+      action_id: options.buttonActionId,
+    },
+  } ),
   twoColumnWithButton: ( options ) => ( {
     type: 'section',
     fields: [

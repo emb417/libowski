@@ -144,41 +144,26 @@ const sendItemInfo = async ( items, responseUrl ) => {
   logger.trace( holdItemIds );
   const body = { blocks: [] };
   items.forEach( ( item, index ) => {
-    const button = {
-      text: 'Request Hold',
-      style: 'primary',
-      action_id: 'request-hold',
-      value: item.id,
-    };
-    if ( holdItemIds.includes( item.id ) ) {
-      button.text = 'Cancel Hold';
-      button.style = 'danger';
-      button.action_id = 'cancel-hold';
-      button.value = `${holdsIds[holdItemIds.indexOf( item.id )]} ${item.id}`;
-    }
     body.blocks.push( slack.image( {
       url: item.briefInfo.jacket.large || '//cor-cdn-static.bibliocommons.com/assets/default_covers/icon-movie-alldiscs-b7d1a6916a9a5872d5f910814880e6c0.png',
       alt: item.briefInfo.title,
     } ) );
-    body.blocks.push(
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `*${index + 1}. ${item.briefInfo.title}* (${item.id})\n${item.briefInfo.subtitle}`,
-        },
-        accessory: {
-          type: 'button',
-          text: {
-            type: 'plain_text',
-            text: button.text,
-          },
-          style: button.style,
-          value: button.value,
-          action_id: button.action_id,
-        },
-      },
-    );
+    const itemOptions = {
+      columnOneText: `*${index + 1}. ${item.briefInfo.title}* (${item.id})\n${item.briefInfo.subtitle}`,
+      buttonText: 'Request Hold',
+      buttonStyle: 'primary',
+      buttonValue: item.id,
+      buttonActionId: 'request-hold',
+    };
+    if ( holdItemIds.includes( item.id ) ) {
+      itemOptions.buttonText = 'Cancel Hold';
+      itemOptions.buttonStyle = 'danger';
+      itemOptions.buttonValue = `${holdsIds[holdItemIds.indexOf( item.id )]} ${item.id}`;
+      itemOptions.buttonActionId = 'cancel-hold';
+    }
+    logger.debug( '...item options' );
+    logger.trace( JSON.stringify( itemOptions ) );
+    body.blocks.push( slack.oneColumnWithButton( itemOptions ) );
     body.blocks.push( slack.divider );
     body.blocks.push( slack.context( { contextText: item.briefInfo.description || 'No Description' } ) );
     body.blocks.push( slack.twoColumn( {
