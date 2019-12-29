@@ -23,7 +23,7 @@ const log4jscfg = {
     },
   },
   categories: {
-    default: { appenders: ['file', 'console'], level: 'info' },
+    default: { appenders: ['file', 'console'], level: 'trace' },
   },
 };
 log4js.configure( log4jscfg );

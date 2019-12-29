@@ -8,11 +8,34 @@ const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls 
 
 const slack = {
   divider: { type: 'divider' },
-  header: ( headerText ) => ( {
+  header: ( options ) => ( {
     type: 'section',
     text: {
       type: 'mrkdwn',
-      text: headerText,
+      text: options.headerText,
+    },
+  } ),
+  twoColumnWithButton: ( options ) => ( {
+    type: 'section',
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: options.columnOneText,
+      },
+      {
+        type: 'mrkdwn',
+        text: options.columnTwoText,
+      },
+    ],
+    accessory: {
+      type: 'button',
+      style: options.buttonStyle,
+      text: {
+        type: 'plain_text',
+        text: options.buttonText,
+      },
+      value: options.buttonValue,
+      action_id: options.buttonActionId,
     },
   } ),
 };

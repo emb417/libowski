@@ -22,65 +22,31 @@ const sendCheckoutsInfo = async ( checkouts, responseUrl ) => {
   logger.debug( 'constructing sendCheckoutsInfo message...' );
   logger.trace( JSON.stringify( checkouts, null, 2 ) );
   const body = { blocks: [] };
-  body.blocks.push( slack.header( '*Checkouts*' ) );
-  body.blocks.push(
-    {
-      type: 'section',
-      fields: [
-        {
-          type: 'mrkdwn',
-          text: '*Title*',
-        },
-        {
-          type: 'mrkdwn',
-          text: '*Due Date*',
-        },
-      ],
-      accessory: {
-        type: 'button',
-        text: {
-          type: 'plain_text',
-          text: 'Renew Below',
-        },
-        value: 'no-renew',
-        action_id: 'no-renew',
-      },
-    },
-  );
+  body.blocks.push( slack.header( { headerText: '*Checkouts*' } ) );
+  body.blocks.push( slack.twoColumnWithButton( {
+    columnOneText: '*Title*',
+    columnTwoText: '*Due Date*',
+    buttonText: 'Renew Below',
+    buttonValue: 'no-renew',
+    buttonActionId: 'no-renew',
+  } ) );
   checkouts.forEach( ( checkout ) => {
-    const button = {
-      type: 'button',
-      text: {
-        type: 'plain_text',
-        text: 'No Renew',
-      },
-      value: checkout.checkoutId,
-      action_id: 'no-renew',
+    const checkoutOptions = {
+      columnOneText: `${checkout.bibTitle}`,
+      columnTwoText: `${checkout.dueDate}`,
+      buttonText: 'No Renew',
+      buttonValue: checkout.checkoutId,
+      buttonActionId: 'no-renew',
     };
     if ( checkout.actions.includes( 'renew' ) ) {
-      button.text.text = 'Renew';
-      button.style = 'primary';
-      button.action_id = `renew-${checkout.itemId}`;
+      checkoutOptions.buttonText = 'Renew';
+      checkoutOptions.buttonStyle = 'primary';
+      checkoutOptions.buttonActionId = `renew-${checkout.itemId}`;
     }
-    logger.debug( '...checkout button' );
-    logger.trace( JSON.stringify( button ) );
+    logger.debug( '...checkout options' );
+    logger.trace( JSON.stringify( checkoutOptions ) );
     body.blocks.push( slack.divider );
-    body.blocks.push(
-      {
-        type: 'section',
-        fields: [
-          {
-            type: 'mrkdwn',
-            text: `${checkout.bibTitle}`,
-          },
-          {
-            type: 'mrkdwn',
-            text: `${checkout.dueDate}`,
-          },
-        ],
-        accessory: button,
-      },
-    );
+    body.blocks.push( slack.twoColumnWithButton( checkoutOptions ) );
     body.blocks.push( slack.divider );
   } );
   logger.debug( '...body' );
@@ -98,31 +64,14 @@ const sendHoldsInfo = async ( holds, responseUrl ) => {
   logger.debug( 'sending holds info...' );
   logger.trace( JSON.stringify( holds, null, 2 ) );
   const body = { blocks: [] };
-  body.blocks.push( slack.header( '*Holds*' ) );
-  body.blocks.push(
-    {
-      type: 'section',
-      fields: [
-        {
-          type: 'mrkdwn',
-          text: '*Title*',
-        },
-        {
-          type: 'mrkdwn',
-          text: '*Position*',
-        },
-      ],
-      accessory: {
-        type: 'button',
-        text: {
-          type: 'plain_text',
-          text: 'Cancel Below',
-        },
-        value: 'no-cancel',
-        action_id: 'no-cancel',
-      },
-    },
-  );
+  body.blocks.push( slack.header( { headerText: '*Holds*' } ) );
+  body.blocks.push( slack.twoColumnWithButton( {
+    columnOneText: '*Title*',
+    columnTwoText: '*Position*',
+    buttonText: 'Cancel Below',
+    buttonValue: 'no-cancel',
+    buttonActionId: 'no-cancel',
+  } ) );
   holds.forEach( ( hold ) => {
     let holdPositionStatus = `${hold.holdsPosition}`;
     if ( hold.status === 'IN_TRANSIT' ) {
@@ -130,43 +79,24 @@ const sendHoldsInfo = async ( holds, responseUrl ) => {
     } else if ( hold.status === 'READY_FOR_PICKUP' ) {
       holdPositionStatus = 'Ready';
     }
-    const button = {
-      type: 'button',
-      text: {
-        type: 'plain_text',
-        text: 'No Cancel',
-      },
-      value: hold.holdsId,
-      action_id: 'no-cancel',
+    const holdOptions = {
+      columnOneText: `${hold.bibTitle}`,
+      columnTwoText: holdPositionStatus,
+      buttonText: 'No Cancel',
+      buttonValue: hold.holdsId,
+      buttonActionId: 'no-cancel',
     };
     if ( hold.actions.includes( 'cancel' ) ) {
-      button.text = {
-        type: 'plain_text',
-        text: 'Cancel Hold',
-      };
-      button.style = 'danger';
-      button.action_id = `cancel-hold-${hold.holdsId}`;
-      button.value = `${hold.holdsId} ${hold.metadataId}`;
+      holdOptions.buttonText = 'Cancel Hold';
+      holdOptions.buttonStyle = 'danger';
+      holdOptions.buttonActionId = `cancel-hold-${hold.holdsId}`;
+      holdOptions.buttonValue = `${hold.holdsId} ${hold.metadataId}`;
     }
-    logger.debug( '...cancel hold button' );
-    logger.trace( JSON.stringify( button ) );
+    logger.debug( '...hold options' );
+    logger.trace( JSON.stringify( holdOptions ) );
     body.blocks.push( slack.divider );
-    body.blocks.push(
-      {
-        type: 'section',
-        fields: [
-          {
-            type: 'mrkdwn',
-            text: `${hold.bibTitle}`,
-          },
-          {
-            type: 'mrkdwn',
-            text: holdPositionStatus,
-          },
-        ],
-        accessory: button,
-      },
-    );
+    body.blocks.push( slack.twoColumnWithButton( holdOptions ) );
+    body.blocks.push( slack.divider );
   } );
   logger.debug( '...body' );
   logger.trace( JSON.stringify( body ) );
