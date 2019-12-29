@@ -96,7 +96,6 @@ const sendHoldsInfo = async ( holds, responseUrl ) => {
     logger.trace( JSON.stringify( holdOptions ) );
     body.blocks.push( slack.divider );
     body.blocks.push( slack.twoColumnWithButton( holdOptions ) );
-    body.blocks.push( slack.divider );
   } );
   logger.debug( '...body' );
   logger.trace( JSON.stringify( body ) );
