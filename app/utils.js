@@ -24,6 +24,11 @@ const slack = {
       text: options.headerText,
     },
   } ),
+  image: ( options ) => ( {
+    type: 'image',
+    image_url: options.url,
+    alt_text: options.alt,
+  } ),
   twoColumnWithButton: ( options ) => ( {
     type: 'section',
     fields: [

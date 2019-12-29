@@ -156,13 +156,10 @@ const sendItemInfo = async ( items, responseUrl ) => {
       button.action_id = 'cancel-hold';
       button.value = `${holdsIds[holdItemIds.indexOf( item.id )]} ${item.id}`;
     }
-    body.blocks.push(
-      {
-        type: 'image',
-        image_url: item.briefInfo.jacket.large || '//cor-cdn-static.bibliocommons.com/assets/default_covers/icon-movie-alldiscs-b7d1a6916a9a5872d5f910814880e6c0.png',
-        alt_text: item.briefInfo.title,
-      },
-    );
+    body.blocks.push( slack.image( {
+      url: item.briefInfo.jacket.large || '//cor-cdn-static.bibliocommons.com/assets/default_covers/icon-movie-alldiscs-b7d1a6916a9a5872d5f910814880e6c0.png',
+      alt: item.briefInfo.title,
+    } ) );
     body.blocks.push(
       {
         type: 'section',
