@@ -5,6 +5,8 @@ const path = require( 'path' );
 const logger = log4js.getLogger( 'capture' );
 const Datastore = require( 'nedb' );
 
+const { branchesOfInterest } = require( './utils' );
+
 const db = new Datastore( { filename: path.join( __dirname, '..', 'data', 'libowski.db' ), autoload: true } );
 
 const holdStatus = async ( item ) => {
@@ -39,7 +41,6 @@ const avail = async ( itemId ) => {
     logger.trace( JSON.stringify( data, null, 2 ) );
 
     const entity = data.entities.bibs[itemId];
-    const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls Library', 'Tigard Public Library', 'Tualatin Public Library'];
     const branchNames = [];
     data.items.forEach( ( item ) => {
       if ( item.status === 'AVAILABLE_ITEMS' ) {

@@ -4,4 +4,86 @@ const asyncForEach = async ( array, callback ) => {
   }
 };
 
-module.exports = { asyncForEach };
+const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls Library', 'Tigard Public Library', 'Tualatin Public Library'];
+
+const slack = {
+  context: ( options ) => ( {
+    type: 'context',
+    elements: [
+      {
+        type: 'mrkdwn',
+        text: options.contextText,
+      },
+    ],
+  } ),
+  divider: { type: 'divider' },
+  header: ( options ) => ( {
+    type: 'section',
+    text: {
+      type: 'mrkdwn',
+      text: options.headerText,
+    },
+  } ),
+  image: ( options ) => ( {
+    type: 'image',
+    image_url: options.url,
+    alt_text: options.alt,
+  } ),
+  oneColumnWithButton: ( options ) => ( {
+    type: 'section',
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: options.columnOneText,
+      },
+    ],
+    accessory: {
+      type: 'button',
+      style: options.buttonStyle,
+      text: {
+        type: 'plain_text',
+        text: options.buttonText,
+      },
+      value: options.buttonValue,
+      action_id: options.buttonActionId,
+    },
+  } ),
+  twoColumnWithButton: ( options ) => ( {
+    type: 'section',
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: options.columnOneText,
+      },
+      {
+        type: 'mrkdwn',
+        text: options.columnTwoText,
+      },
+    ],
+    accessory: {
+      type: 'button',
+      style: options.buttonStyle,
+      text: {
+        type: 'plain_text',
+        text: options.buttonText,
+      },
+      value: options.buttonValue,
+      action_id: options.buttonActionId,
+    },
+  } ),
+  twoColumn: ( options ) => ( {
+    type: 'section',
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: options.columnOneText,
+      },
+      {
+        type: 'mrkdwn',
+        text: options.columnTwoText,
+      },
+    ],
+  } ),
+};
+
+module.exports = { asyncForEach, branchesOfInterest, slack };

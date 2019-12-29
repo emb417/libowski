@@ -1,11 +1,9 @@
 const axios = require( 'axios' );
 const log4js = require( 'log4js' );
 const fetch = require( './fetch' );
+const { branchesOfInterest, slack } = require( './utils' );
 
 const logger = log4js.getLogger( 'slack' );
-
-
-const divider = { type: 'divider' };
 
 const oauth = async ( code ) => {
   logger.debug( `oauth ${code}...` );
@@ -24,74 +22,32 @@ const sendCheckoutsInfo = async ( checkouts, responseUrl ) => {
   logger.debug( 'constructing sendCheckoutsInfo message...' );
   logger.trace( JSON.stringify( checkouts, null, 2 ) );
   const body = { blocks: [] };
-  body.blocks.push(
-    {
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: '*Checkouts*',
-      },
-    },
-  );
-  body.blocks.push(
-    {
-      type: 'section',
-      fields: [
-        {
-          type: 'mrkdwn',
-          text: '*Title*',
-        },
-        {
-          type: 'mrkdwn',
-          text: '*Due Date*',
-        },
-      ],
-      accessory: {
-        type: 'button',
-        text: {
-          type: 'plain_text',
-          text: 'Renew Below',
-        },
-        value: 'no-renew',
-        action_id: 'no-renew',
-      },
-    },
-  );
+  body.blocks.push( slack.header( { headerText: '*Checkouts*' } ) );
+  body.blocks.push( slack.twoColumnWithButton( {
+    columnOneText: '*Title*',
+    columnTwoText: '*Due Date*',
+    buttonText: 'Renew Below',
+    buttonValue: 'no-renew',
+    buttonActionId: 'no-renew',
+  } ) );
   checkouts.forEach( ( checkout ) => {
-    const button = {
-      type: 'button',
-      text: {
-        type: 'plain_text',
-        text: 'No Renew',
-      },
-      value: checkout.checkoutId,
-      action_id: 'no-renew',
+    const checkoutOptions = {
+      columnOneText: `${checkout.bibTitle}`,
+      columnTwoText: `${checkout.dueDate}`,
+      buttonText: 'No Renew',
+      buttonValue: checkout.checkoutId,
+      buttonActionId: 'no-renew',
     };
     if ( checkout.actions.includes( 'renew' ) ) {
-      button.text.text = 'Renew';
-      button.style = 'primary';
-      button.action_id = `renew-${checkout.itemId}`;
+      checkoutOptions.buttonText = 'Renew';
+      checkoutOptions.buttonStyle = 'primary';
+      checkoutOptions.buttonActionId = `renew-${checkout.itemId}`;
     }
-    logger.debug( '...checkout button' );
-    logger.trace( JSON.stringify( button ) );
-    body.blocks.push( divider );
-    body.blocks.push(
-      {
-        type: 'section',
-        fields: [
-          {
-            type: 'mrkdwn',
-            text: `${checkout.bibTitle}`,
-          },
-          {
-            type: 'mrkdwn',
-            text: `${checkout.dueDate}`,
-          },
-        ],
-        accessory: button,
-      },
-    );
-    body.blocks.push( divider );
+    logger.debug( '...checkout options' );
+    logger.trace( JSON.stringify( checkoutOptions ) );
+    body.blocks.push( slack.divider );
+    body.blocks.push( slack.twoColumnWithButton( checkoutOptions ) );
+    body.blocks.push( slack.divider );
   } );
   logger.debug( '...body' );
   logger.trace( JSON.stringify( body ) );
@@ -108,39 +64,14 @@ const sendHoldsInfo = async ( holds, responseUrl ) => {
   logger.debug( 'sending holds info...' );
   logger.trace( JSON.stringify( holds, null, 2 ) );
   const body = { blocks: [] };
-  body.blocks.push(
-    {
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: '*Holds*',
-      },
-    },
-  );
-  body.blocks.push(
-    {
-      type: 'section',
-      fields: [
-        {
-          type: 'mrkdwn',
-          text: '*Title*',
-        },
-        {
-          type: 'mrkdwn',
-          text: '*Position*',
-        },
-      ],
-      accessory: {
-        type: 'button',
-        text: {
-          type: 'plain_text',
-          text: 'Cancel Below',
-        },
-        value: 'no-cancel',
-        action_id: 'no-cancel',
-      },
-    },
-  );
+  body.blocks.push( slack.header( { headerText: '*Holds*' } ) );
+  body.blocks.push( slack.twoColumnWithButton( {
+    columnOneText: '*Title*',
+    columnTwoText: '*Position*',
+    buttonText: 'Cancel Below',
+    buttonValue: 'no-cancel',
+    buttonActionId: 'no-cancel',
+  } ) );
   holds.forEach( ( hold ) => {
     let holdPositionStatus = `${hold.holdsPosition}`;
     if ( hold.status === 'IN_TRANSIT' ) {
@@ -148,43 +79,23 @@ const sendHoldsInfo = async ( holds, responseUrl ) => {
     } else if ( hold.status === 'READY_FOR_PICKUP' ) {
       holdPositionStatus = 'Ready';
     }
-    const button = {
-      type: 'button',
-      text: {
-        type: 'plain_text',
-        text: 'No Cancel',
-      },
-      value: hold.holdsId,
-      action_id: 'no-cancel',
+    const holdOptions = {
+      columnOneText: `${hold.bibTitle}`,
+      columnTwoText: holdPositionStatus,
+      buttonText: 'No Cancel',
+      buttonValue: hold.holdsId,
+      buttonActionId: 'no-cancel',
     };
     if ( hold.actions.includes( 'cancel' ) ) {
-      button.text = {
-        type: 'plain_text',
-        text: 'Cancel Hold',
-      };
-      button.style = 'danger';
-      button.action_id = `cancel-hold-${hold.holdsId}`;
-      button.value = `${hold.holdsId} ${hold.metadataId}`;
+      holdOptions.buttonText = 'Cancel Hold';
+      holdOptions.buttonStyle = 'danger';
+      holdOptions.buttonActionId = `cancel-hold-${hold.holdsId}`;
+      holdOptions.buttonValue = `${hold.holdsId} ${hold.metadataId}`;
     }
-    logger.debug( '...cancel hold button' );
-    logger.trace( JSON.stringify( button ) );
-    body.blocks.push( divider );
-    body.blocks.push(
-      {
-        type: 'section',
-        fields: [
-          {
-            type: 'mrkdwn',
-            text: `${hold.bibTitle}`,
-          },
-          {
-            type: 'mrkdwn',
-            text: holdPositionStatus,
-          },
-        ],
-        accessory: button,
-      },
-    );
+    logger.debug( '...hold options' );
+    logger.trace( JSON.stringify( holdOptions ) );
+    body.blocks.push( slack.divider );
+    body.blocks.push( slack.twoColumnWithButton( holdOptions ) );
   } );
   logger.debug( '...body' );
   logger.trace( JSON.stringify( body ) );
@@ -201,38 +112,18 @@ const sendHoursInfo = async ( hoursForAll, responseUrl ) => {
   logger.debug( 'constructing sendHoursInfo message...' );
   logger.trace( JSON.stringify( hoursForAll, null, 2 ) );
   const body = { blocks: [] };
-  body.blocks.push(
-    {
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: '*Locations and Hours*',
-      },
-    },
-  );
-  const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls', 'Tigard Public Library', 'Tualatin Public Library'];
+  body.blocks.push( slack.header( { headerText: '*Locations and Hours*' } ) );
   hoursForAll.forEach( ( location ) => {
     if ( branchesOfInterest.includes( location.name ) ) {
       let hoursText = '*Hours*\n';
       location.hours.forEach( ( day ) => {
         hoursText += `${day.timeRef} ${day.openTime.substring( 1 )}-${day.closeTime.substring( 1 )}\n`;
       } );
-      body.blocks.push(
-        {
-          type: 'section',
-          fields: [
-            {
-              type: 'mrkdwn',
-              text: `*Location*\n${location.name}`,
-            },
-            {
-              type: 'mrkdwn',
-              text: hoursText,
-            },
-          ],
-        },
-      );
-      body.blocks.push( divider );
+      body.blocks.push( slack.twoColumn( {
+        columnOneText: `*Location*\n${location.name}`,
+        columnTwoText: hoursText,
+      } ) );
+      body.blocks.push( slack.divider );
     }
   } );
   try {
@@ -253,74 +144,34 @@ const sendItemInfo = async ( items, responseUrl ) => {
   logger.trace( holdItemIds );
   const body = { blocks: [] };
   items.forEach( ( item, index ) => {
-    const button = {
-      text: 'Request Hold',
-      style: 'primary',
-      action_id: 'request-hold',
-      value: item.id,
+    body.blocks.push( slack.image( {
+      url: item.briefInfo.jacket.large || '//cor-cdn-static.bibliocommons.com/assets/default_covers/icon-movie-alldiscs-b7d1a6916a9a5872d5f910814880e6c0.png',
+      alt: item.briefInfo.title,
+    } ) );
+    const itemOptions = {
+      columnOneText: `*${index + 1}. ${item.briefInfo.title}* (${item.id})\n${item.briefInfo.subtitle}`,
+      buttonText: 'Request Hold',
+      buttonStyle: 'primary',
+      buttonValue: item.id,
+      buttonActionId: 'request-hold',
     };
     if ( holdItemIds.includes( item.id ) ) {
-      button.text = 'Cancel Hold';
-      button.style = 'danger';
-      button.action_id = 'cancel-hold';
-      button.value = `${holdsIds[holdItemIds.indexOf( item.id )]} ${item.id}`;
+      itemOptions.buttonText = 'Cancel Hold';
+      itemOptions.buttonStyle = 'danger';
+      itemOptions.buttonValue = `${holdsIds[holdItemIds.indexOf( item.id )]} ${item.id}`;
+      itemOptions.buttonActionId = 'cancel-hold';
     }
-    body.blocks.push(
-      {
-        type: 'image',
-        image_url: item.briefInfo.jacket.large || '//cor-cdn-static.bibliocommons.com/assets/default_covers/icon-movie-alldiscs-b7d1a6916a9a5872d5f910814880e6c0.png',
-        alt_text: item.briefInfo.title,
-      },
-    );
-    body.blocks.push(
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `*${index + 1}. ${item.briefInfo.title}* (${item.id})\n${item.briefInfo.subtitle}`,
-        },
-        accessory: {
-          type: 'button',
-          text: {
-            type: 'plain_text',
-            text: button.text,
-          },
-          style: button.style,
-          value: button.value,
-          action_id: button.action_id,
-        },
-      },
-    );
-    body.blocks.push( divider );
-    body.blocks.push(
-      {
-        type: 'context',
-        elements: [
-          {
-            type: 'mrkdwn',
-            text: item.briefInfo.description || 'No Description',
-          },
-        ],
-      },
-    );
-    body.blocks.push(
-      {
-        type: 'section',
-        fields: [
-          {
-            type: 'mrkdwn',
-            text: `*Year*\n${item.briefInfo.publicationDate}\n\n*Format*\n${item.briefInfo.format}`,
-          },
-          {
-            type: 'mrkdwn',
-            text: `*Availability*\n${item.availability.availableCopies} out of ${item.availability.totalCopies}\n\n*Held*\n${item.availability.heldCopies}`,
-          },
-        ],
-      },
-    );
-    body.blocks.push( divider );
+    logger.debug( '...item options' );
+    logger.trace( JSON.stringify( itemOptions ) );
+    body.blocks.push( slack.oneColumnWithButton( itemOptions ) );
+    body.blocks.push( slack.divider );
+    body.blocks.push( slack.context( { contextText: item.briefInfo.description || 'No Description' } ) );
+    body.blocks.push( slack.twoColumn( {
+      columnOneText: `*Year*\n${item.briefInfo.publicationDate}\n\n*Format*\n${item.briefInfo.format}`,
+      columnTwoText: `*Availability*\n${item.availability.availableCopies} out of ${item.availability.totalCopies}\n\n*Held*\n${item.availability.heldCopies}`,
+    } ) );
+    body.blocks.push( slack.divider );
     const branchNames = [];
-    const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls Library', 'Tigard Public Library', 'Tualatin Public Library'];
     item.availabilities.forEach( ( availability ) => {
       if ( availability.status === 'AVAILABLE_ITEMS' ) {
         availability.items.forEach(
@@ -334,33 +185,22 @@ const sendItemInfo = async ( items, responseUrl ) => {
         );
       }
     } );
+    logger.debug( '...branchNames of available items' );
+    logger.trace( JSON.stringify( branchNames ) );
     if ( branchNames.length > 0 ) {
-      body.blocks.push(
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `*Available @ Branches of Interest*\n${branchNames.join( '\n' )}`,
-          },
-        },
-      );
-      body.blocks.push( divider );
+      body.blocks.push( slack.header( { headerText: `*Available @ Branches of Interest*\n${branchNames.join( '\n' )}` } ) );
+      body.blocks.push( slack.divider );
     }
   } );
   logger.debug( 'posting sendItemInfo to slack...' );
   logger.trace( JSON.stringify( body ) );
   try {
-    return await axios.post( responseUrl, JSON.stringify( { ...body, response_type: 'in_channel' } ) );
+    return await axios.post( responseUrl, JSON.stringify( { ...body, response_type: 'ephemeral' } ) );
   } catch ( err ) {
     logger.error( JSON.stringify( err.response.data ) );
     logger.trace( err );
     return err.response.data;
   }
-};
-
-const sendMessage = ( message, responseUrl ) => {
-  logger.debug( 'posting message...' );
-  try { axios.post( responseUrl, JSON.stringify( { text: message, response_type: 'in_channel' } ) ); } catch ( err ) { logger.error( err ); }
 };
 
 module.exports = {
@@ -370,5 +210,4 @@ module.exports = {
   sendHoldsInfo,
   sendHoursInfo,
   sendItemInfo,
-  sendMessage,
 };
