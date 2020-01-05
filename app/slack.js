@@ -75,9 +75,11 @@ const sendHoldsInfo = async ( holds, responseUrl ) => {
   holds.forEach( ( hold ) => {
     let holdPositionStatus = `${hold.holdsPosition}`;
     if ( hold.status === 'IN_TRANSIT' ) {
-      holdPositionStatus = 'In Transit';
+      holdPositionStatus = ':truck: In Transit';
     } else if ( hold.status === 'READY_FOR_PICKUP' ) {
-      holdPositionStatus = 'Ready';
+      holdPositionStatus = ':white_check_mark: Ready';
+    } else if ( hold.status === 'SUSPENDED' ) {
+      holdPositionStatus = ':hourglass: Suspended';
     }
     const holdOptions = {
       columnOneText: `${hold.bibTitle}`,
@@ -91,6 +93,12 @@ const sendHoldsInfo = async ( holds, responseUrl ) => {
       holdOptions.buttonStyle = 'danger';
       holdOptions.buttonActionId = `cancel-hold-${hold.holdsId}`;
       holdOptions.buttonValue = `${hold.holdsId} ${hold.metadataId}`;
+    }
+    if ( hold.actions.includes( 'activate' ) ) {
+      holdOptions.buttonText = 'Activate Hold';
+      holdOptions.buttonStyle = 'primary';
+      holdOptions.buttonActionId = `activate-hold-${hold.holdsId}`;
+      holdOptions.buttonValue = hold.holdsId;
     }
     logger.debug( '...hold options' );
     logger.trace( JSON.stringify( holdOptions ) );

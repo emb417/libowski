@@ -120,6 +120,45 @@ const accountHolds = async ( { libraryName, libraryPin } ) => {
   return holdArray;
 };
 
+const activateHold = async ( {
+  holdsId,
+  libraryName,
+  libraryPin,
+} ) => {
+  try {
+    logger.debug( `activating hold for id ${holdsId}...` );
+    const {
+      accessToken,
+      accountId,
+      sessionId,
+    } = await accountTokens( { libraryName, libraryPin } );
+    const response = await axios( {
+      url: 'https://gateway.bibliocommons.com/v2/libraries/wccls/holds',
+      method: 'patch',
+      params: {
+        locale: 'en-US',
+      },
+      data: {
+        accountId,
+        holdIds: [holdsId],
+        suspended: { status: false },
+      },
+      headers: {
+        Cookie: `session_id=${sessionId}; bc_access_token=${accessToken};`,
+      },
+    } );
+    logger.debug( '...got response from activate request' );
+    logger.trace( response );
+    logger.trace( response.data.analytics.events );
+    const { failures } = response;
+    return ( typeof failures === 'undefined' ? 'activated, or is it?' : JSON.stringify( failures ) );
+  } catch ( err ) {
+    logger.error( JSON.stringify( err.response.data.error ) );
+    logger.trace( err );
+    return err.response.data.error.message;
+  }
+};
+
 const addHold = async ( {
   branchId,
   itemId,
@@ -335,6 +374,7 @@ module.exports = {
   accountCheckouts,
   accountHolds,
   accountTokens,
+  activateHold,
   addHold,
   cancelHold,
   hoursForAll,
