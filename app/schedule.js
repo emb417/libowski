@@ -29,14 +29,9 @@ const job = ( interval ) => new CronJob( interval, async () => {
       if ( Object.entries( alertItem ).length === 0 ) {
         logger.info( 'sending alert for elevated hold position...' );
         if ( holdItem.status === 'IN_TRANSIT' ) { holdPositionStatus = ':truck: In Transit'; }
-        if ( holdItem.status === 'SUSPENDED' ) { holdPositionStatus = ':hourglass: Suspended'; }
         await capture.holdStatus( holdItem );
         slack.sendAlert( `${holdItem.bibTitle} is ${holdPositionStatus}` );
       } else if ( alertItem[0].status === 'IN_TRANSIT' && holdItem.status === 'READY_FOR_PICKUP' ) {
-        logger.info( 'sending alert for elevated hold position...' );
-        await capture.holdStatus( holdItem );
-        slack.sendAlert( `${holdItem.bibTitle} is ${holdPositionStatus}` );
-      } else if ( alertItem[0].status !== 'SUSPENDED' && holdItem.status === 'SUSPENDED' ) {
         logger.info( 'sending alert for elevated hold position...' );
         await capture.holdStatus( holdItem );
         slack.sendAlert( `${holdItem.bibTitle} is ${holdPositionStatus}` );
