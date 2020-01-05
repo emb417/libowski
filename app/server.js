@@ -97,6 +97,8 @@ app.post( '/interact', asyncHandler( async ( req, res ) => {
   let response = 'I don\'t know what you\'re talking about';
   if ( actions[0].action_id === 'request-hold' ) {
     response = await fetch.addHold( { itemId: actions[0].value } );
+  } else if ( actions[0].action_id.indexOf( 'activate-hold' ) === 0 ) {
+    response = await fetch.activateHold( { holdsId: actions[0].value } );
   } else if ( actions[0].action_id.indexOf( 'cancel-hold' ) === 0 ) {
     const [holdsId, itemId] = actions[0].value.split( ' ' );
     response = await fetch.cancelHold( { holdsId, itemId } );
