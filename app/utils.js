@@ -4,7 +4,7 @@ const asyncForEach = async ( array, callback ) => {
   }
 };
 
-const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls Library', 'Tigard Public Library', 'Tualatin Public Library'];
+const branchesOfInterest = ['Beaverton City Library', 'Beaverton Murray Scholls', 'Tigard Public Library', 'Tualatin Public Library'];
 
 const slack = {
   context: ( options ) => ( {
