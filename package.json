@@ -24,7 +24,7 @@
     "express-async-handler": "^1.1.4",
     "googleapis": "^45.0.0",
     "helmet": "^3.21.2",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "log4js": "^5.2.2",
     "nedb": "^1.8.0",
     "nedb-promises": "^4.0.0",
